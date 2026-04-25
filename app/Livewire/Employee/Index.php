@@ -147,6 +147,8 @@ class Index extends Component
                 ->orWhere('employee_code', 'like', '%' . $this->search . '%')
                 ->latest()
                 ->paginate(10),
+        ])->layout('layouts.app', [
+            'header' => 'Employees',
         ]);
     }
 }

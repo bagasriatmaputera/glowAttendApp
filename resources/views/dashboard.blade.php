@@ -17,7 +17,7 @@
                     </div>
                     <div class="ml-5 w-0 flex-1">
                         <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Total Employees</dt>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Total Karyawan</dt>
                             <dd class="text-lg font-semibold text-gray-900">24</dd>
                         </dl>
                     </div>
@@ -33,7 +33,7 @@
                     </div>
                     <div class="ml-5 w-0 flex-1">
                         <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Present Today</dt>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Hadir Hari Ini</dt>
                             <dd class="text-lg font-semibold text-gray-900">18</dd>
                         </dl>
                     </div>
@@ -49,7 +49,7 @@
                     </div>
                     <div class="ml-5 w-0 flex-1">
                         <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Pending Leave</dt>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Cuti Menunggu</dt>
                             <dd class="text-lg font-semibold text-gray-900">3</dd>
                         </dl>
                     </div>
@@ -65,7 +65,7 @@
                     </div>
                     <div class="ml-5 w-0 flex-1">
                         <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Total Schedules</dt>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Total Jadwal</dt>
                             <dd class="text-lg font-semibold text-gray-900">12</dd>
                         </dl>
                     </div>
@@ -82,16 +82,16 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-2">Welcome to Glowttend!</h3>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-2">Selamat Datang di Glowttend!</h3>
                     <p class="text-gray-600 max-w-md mx-auto">
-                        Your comprehensive employee management system. Track attendance, manage schedules, and handle leave requests all in one place.
+                        Sistem manajemen karyawan yang lengkap. Lacak kehadiran, kelola jadwal, dan tangani permintaan cuti semua dalam satu tempat.
                     </p>
                     <div class="mt-6 flex justify-center space-x-4">
                         <a href="{{ route('employees') }}" wire:navigate class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 shadow-lg shadow-indigo-500/25">
-                            Manage Employees
+                            Kelola Karyawan
                         </a>
                         <a href="{{ route('attendance.index') }}" wire:navigate class="inline-flex items-center px-6 py-3 border border-indigo-300 text-base font-medium rounded-xl text-indigo-700 bg-white hover:bg-indigo-50 transition-colors duration-200">
-                            View Attendance
+                            Lihat Kehadiran
                         </a>
                     </div>
                 </div>

@@ -16,6 +16,7 @@
         "livewire/livewire": "^3.6.4",
         "livewire/volt": "^1.7.0",
         "spatie/laravel-permission": "^7.2",
+        "wire-elements/modal": "^3.0",
         "wireui/wireui": "^2.6"
     },
     "require-dev": {

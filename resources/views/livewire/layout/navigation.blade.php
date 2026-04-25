@@ -39,16 +39,16 @@ new class extends Component
                         {{ __('Dashboard') }}
                     </x-nav-link>
                     <x-nav-link :href="route('employees')" :active="request()->routeIs('employees')" wire:navigate>
-                        {{ __('Employees') }}
+                        {{ __('Karyawan') }}
                     </x-nav-link>
                     <x-nav-link :href="route('attendance.index')" :active="request()->routeIs('attendance.*')" wire:navigate>
-                        {{ __('Attendance') }}
+                        {{ __('Kehadiran') }}
                     </x-nav-link>
                     <x-nav-link :href="route('leave-requests.index')" :active="request()->routeIs('leave-requests.*')" wire:navigate>
-                        {{ __('Leave Requests') }}
+                        {{ __('Cuti') }}
                     </x-nav-link>
                     <x-nav-link :href="route('schedules.index')" :active="request()->routeIs('schedules.*')" wire:navigate>
-                        {{ __('Schedules') }}
+                        {{ __('Jadwal') }}
                     </x-nav-link>
                 </div>
             </div>
@@ -75,13 +75,13 @@ new class extends Component
 
                     <x-slot name="content">
                         <x-dropdown-link :href="route('profile')" wire:navigate>
-                            {{ __('Profile') }}
+                            {{ __('Profil') }}
                         </x-dropdown-link>
 
                         <!-- Authentication -->
                         <button wire:click="logout" class="w-full text-start">
                             <x-dropdown-link>
-                                {{ __('Log Out') }}
+                                {{ __('Keluar') }}
                             </x-dropdown-link>
                         </button>
                     </x-slot>
@@ -107,16 +107,16 @@ new class extends Component
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('employees')" :active="request()->routeIs('employees')" wire:navigate>
-                {{ __('Employees') }}
+                {{ __('Karyawan') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('attendance.index')" :active="request()->routeIs('attendance.*')" wire:navigate>
-                {{ __('Attendance') }}
+                {{ __('Kehadiran') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('leave-requests.index')" :active="request()->routeIs('leave-requests.*')" wire:navigate>
-                {{ __('Leave Requests') }}
+                {{ __('Cuti') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('schedules.index')" :active="request()->routeIs('schedules.*')" wire:navigate>
-                {{ __('Schedules') }}
+                {{ __('Jadwal') }}
             </x-responsive-nav-link>
         </div>
 
@@ -136,13 +136,13 @@ new class extends Component
 
             <div class="mt-3 space-y-1">
                 <x-responsive-nav-link :href="route('profile')" wire:navigate>
-                    {{ __('Profile') }}
+                    {{ __('Profil') }}
                 </x-responsive-nav-link>
 
                 <!-- Authentication -->
                 <button wire:click="logout" class="w-full text-start">
                     <x-responsive-nav-link>
-                        {{ __('Log Out') }}
+                        {{ __('Keluar') }}
                     </x-responsive-nav-link>
                 </button>
             </div>

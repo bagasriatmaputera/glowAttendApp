@@ -45,10 +45,9 @@
             @endif
 
             <!-- Page Content -->
-            <main class="py-8 relative z-0">
+            <main class="py-2 relative z-0">
                 {{ $slot }}
             </main>
         </div>
-
     </body>
 </html>

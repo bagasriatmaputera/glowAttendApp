@@ -40,7 +40,7 @@ new #[Layout('layouts.guest')] class extends Component
     <form wire:submit="register" class="space-y-6">
         <!-- Name -->
         <div>
-            <x-input-label for="name" :value="__('Name')" class="text-sm font-semibold text-gray-700 mb-2" />
+            <x-input-label for="name" :value="__('Nama')" class="text-sm font-semibold text-gray-700 mb-2" />
             <x-text-input wire:model="name" id="name" class="block mt-1 w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white/80 backdrop-blur-sm transition-colors" type="text" name="name" required autofocus autocomplete="name" />
             <x-input-error :messages="$errors->get('name')" class="mt-2" />
         </div>
@@ -54,7 +54,7 @@ new #[Layout('layouts.guest')] class extends Component
 
         <!-- Password -->
         <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" class="text-sm font-semibold text-gray-700 mb-2" />
+            <x-input-label for="password" :value="__('Kata Sandi')" class="text-sm font-semibold text-gray-700 mb-2" />
 
             <x-text-input wire:model="password" id="password" class="block mt-1 w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white/80 backdrop-blur-sm transition-colors"
                             type="password"
@@ -66,7 +66,7 @@ new #[Layout('layouts.guest')] class extends Component
 
         <!-- Confirm Password -->
         <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" class="text-sm font-semibold text-gray-700 mb-2" />
+            <x-input-label for="password_confirmation" :value="__('Konfirmasi Kata Sandi')" class="text-sm font-semibold text-gray-700 mb-2" />
 
             <x-text-input wire:model="password_confirmation" id="password_confirmation" class="block mt-1 w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white/80 backdrop-blur-sm transition-colors"
                             type="password"
@@ -77,11 +77,11 @@ new #[Layout('layouts.guest')] class extends Component
 
         <div class="flex items-center justify-end mt-6">
             <a class="text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-150" href="{{ route('login') }}" wire:navigate>
-                {{ __('Already registered?') }}
+                {{ __('Sudah terdaftar?') }}
             </a>
 
             <x-primary-button class="ms-4 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 rounded-xl transition-all duration-200 shadow-lg shadow-indigo-500/25">
-                {{ __('Register') }}
+                {{ __('Daftar') }}
             </x-primary-button>
         </div>
     </form>
