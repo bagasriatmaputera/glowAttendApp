@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name'); // e.g., Shift Pagi, Shift Sore
             $table->time('clock_in_time');
             $table->time('clock_out_time');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

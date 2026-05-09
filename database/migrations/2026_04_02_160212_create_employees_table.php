@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('position'); // Stylist, Kasir, Capster
             $table->date('join_date');
             $table->boolean('is_active')->default(true);
+            $table->softDeletes();
             $table->timestamps();
         });
     }

@@ -21,7 +21,8 @@ return new class extends Migration
             $table->enum('status', ['pending', 'approved', 'rejected']);
             $table->foreignId('approved_by')->nullable()->constrained('users'); // Admin/Super Admin yang approve
             $table->string('attachment_url')->nullable(); // Bukti surat dokter dll
-            $table->timestamp('created_at');
+            $table->softDeletes();
+            $table->timestamps();
         });
     }
 

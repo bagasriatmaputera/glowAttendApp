@@ -20,7 +20,11 @@ new #[Layout('layouts.guest')] class extends Component
 
         Session::regenerate();
 
-        $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
+        if(Auth()->user()->hasRole(['SuperAdmin', 'Admin'])){
+            $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
+        } else {
+            $this->redirectIntended(default: route('home', absolute: false), navigate: true);
+        }
     }
 }; ?>
 

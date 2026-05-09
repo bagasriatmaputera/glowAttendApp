@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('employee_id')->constrained('employees');
             $table->foreignId('schedule_id')->constrained('schedules');
             $table->enum('day_of_week', ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']);
+            $table->softDeletes();
             $table->timestamps();
         });
     }

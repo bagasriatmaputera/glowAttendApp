@@ -25,6 +25,7 @@ return new class extends Migration
             $table->string('photo_out_url')->nullable();
             $table->enum('status', ['present', 'late', 'on_leave', 'absent']);
             $table->text('notes')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

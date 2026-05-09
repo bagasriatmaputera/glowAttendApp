@@ -26,6 +26,13 @@ class Index extends Component
     public $approved_by;
     public bool $showLeaveRequestModal = false;
     public bool $showDeleteModal = false;
+    public bool $isHasPermission = true;
+
+    public function mount()
+    {
+        $this->isHasPermission = auth()->user()->hasRole(['manager', 'admin']);
+    }
+
 
     protected function rules()
     {
@@ -42,6 +49,14 @@ class Index extends Component
 
     public function store()
     {
+        if (!$this->isHasPermission) {
+            $this->dispatch('alert', [
+                'type' => 'error',
+                'message' => 'You do not have permission to perform this action.'
+            ]);
+            return;
+        }
+        
         $this->validate();
 
         LeaveRequest::updateOrCreate(
@@ -91,6 +106,14 @@ class Index extends Component
 
     public function delete()
     {
+        if (!$this->isHasPermission) {
+            $this->dispatch('alert', [
+                'type' => 'error',
+                'message' => 'You do not have permission to perform this action.'
+            ]);
+            return;
+        }
+        
         $leaveRequest = LeaveRequest::findOrFail($this->leave_request_id);
         $leaveRequest->delete();
 
@@ -100,6 +123,14 @@ class Index extends Component
 
     public function approve($id)
     {
+        if (!$this->isHasPermission) {
+            $this->dispatch('alert', [
+                'type' => 'error',
+                'message' => 'You do not have permission to perform this action.'
+            ]);
+            return;
+        }
+        
         $leaveRequest = LeaveRequest::findOrFail($id);
         $leaveRequest->update([
             'status' => 'approved',
@@ -111,6 +142,14 @@ class Index extends Component
 
     public function reject($id)
     {
+        if (!$this->isHasPermission) {
+            $this->dispatch('alert', [
+                'type' => 'error',
+                'message' => 'You do not have permission to perform this action.'
+            ]);
+            return;
+        }
+        
         $leaveRequest = LeaveRequest::findOrFail($id);
         $leaveRequest->update([
             'status' => 'rejected',

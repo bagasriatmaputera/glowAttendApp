@@ -141,6 +141,7 @@
 
     <!-- Create/Edit Modal -->
     <div x-data="{ open: @entangle('showAttendanceModal') }" class="p-4" x-cloak>
+    <template x-teleport="body">
         <!-- Wrapper -->
         <div x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
             <!-- Overlay -->
@@ -305,10 +306,12 @@
                 </div>
             </div>
         </div>
+    </template>
     </div>
 
     <!-- Delete Confirmation Modal -->
     <div x-data="{ open: @entangle('showDeleteModal') }" class="p-4" x-cloak>
+    <template x-teleport="body">
         <!-- Wrapper -->
         <div x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
             <!-- Overlay -->
@@ -383,5 +386,6 @@
                 </div>
             </div>
         </div>
+    </template>
     </div>
 </div>

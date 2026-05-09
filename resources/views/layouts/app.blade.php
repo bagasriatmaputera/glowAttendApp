@@ -1,3 +1,8 @@
+@php
+    $isHomeAttendPage = request()->is('home') || request()->is('home/*');
+    $isNotManagerPage = request()->is('leave-form-page') || request()->is('leave-form/*');
+@endphp
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
@@ -27,11 +32,12 @@
         <div class="min-h-screen selection:bg-indigo-500 selection:text-white relative">
 
             <!-- Navigation -->
-            <livewire:layout.navigation />
-
-            <!-- Page Heading -->
-            @if (isset($header))
-                <header class="bg-white/90 backdrop-blur-md border-b border-indigo-100 shadow-lg shadow-indigo-100/50 relative z-10">
+            @if (!$isHomeAttendPage || $isNotManagerPage)
+                <livewire:layout.navigation />
+                
+                <!-- Page Heading -->
+                @if (isset($header))
+                <header class=relative z-10">
                     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                         <div class="flex items-center gap-4">
                             <!-- Accent bar with gradient -->
@@ -42,10 +48,11 @@
                         </div>
                     </div>
                 </header>
+                @endif
             @endif
 
             <!-- Page Content -->
-            <main class="py-2 relative z-0">
+            <main class="relative z-0">
                 {{ $slot }}
             </main>
         </div>

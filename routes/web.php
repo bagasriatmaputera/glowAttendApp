@@ -4,28 +4,33 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome');
 
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::view('home', 'livewire.home-attend-page')
+        ->name('home');
 
-Route::view('employees', 'employees')
-    ->middleware(['auth', 'verified'])
-    ->name('employees');
+    Route::view('dashboard', 'dashboard')
+        ->name('dashboard');
 
-Route::view('attendance', 'attendance')
-    ->middleware(['auth', 'verified'])
-    ->name('attendance.index');
+    Route::view('employees', 'employees')
+        ->name('employees');
 
-Route::view('leave-requests', 'leave-requests')
-    ->middleware(['auth', 'verified'])
-    ->name('leave-requests.index');
+    Route::view('attendance', 'attendance')
+        ->name('attendance.index');
 
-Route::view('schedules', 'schedules')
-    ->middleware(['auth', 'verified'])
-    ->name('schedules.index');
+    Route::view('leave', 'leave-requests')
+        ->name('leave-requests.index');
+    
+    Route::view('leave-index', 'livewire.leave-request-index')
+        ->name('leave-index');
 
-Route::view('profile', 'profile')
-    ->middleware(['auth'])
-    ->name('profile');
+    Route::get('leave-form', \App\Livewire\LeaveFormPage::class)
+        ->name('leave-form-page');
 
-require __DIR__.'/auth.php';
+    Route::view('schedules', 'schedules')
+        ->name('schedules.index');
+
+    Route::view('profile', 'profile')
+        ->name('profile');
+});
+
+require __DIR__ . '/auth.php';
