@@ -19,8 +19,8 @@ class Index extends Component
     public $employee_id;
     public $date;
     public $status = 'present';
-    public $check_in;
-    public $check_out;
+    public $clock_in;
+    public $clock_out;
     public $notes;
     public bool $showAttendanceModal = false;
     public bool $showDeleteModal = false;
@@ -31,8 +31,8 @@ class Index extends Component
             'employee_id' => 'required|exists:employees,id',
             'date' => 'required|date',
             'status' => 'required|in:present,late,absent,on_leave',
-            'check_in' => 'nullable|date_format:H:i',
-            'check_out' => 'nullable|date_format:H:i|after:check_in',
+            'clock_in' => 'nullable|date_format:H:i',
+            'clock_out' => 'nullable|date_format:H:i|after:clock_in',
             'notes' => 'nullable|string|max:500',
         ];
     }
@@ -47,8 +47,8 @@ class Index extends Component
                 'employee_id' => $this->employee_id,
                 'date' => $this->date,
                 'status' => $this->status,
-                'check_in' => $this->check_in,
-                'check_out' => $this->check_out,
+                'clock_in' => $this->clock_in,
+                'clock_out' => $this->clock_out,
                 'notes' => $this->notes,
             ]
         );
@@ -65,8 +65,8 @@ class Index extends Component
         $this->employee_id = $attendance->employee_id;
         $this->date = $attendance->date->format('Y-m-d');
         $this->status = $attendance->status;
-        $this->check_in = $attendance->check_in;
-        $this->check_out = $attendance->check_out;
+        $this->clock_in = $attendance->clock_in ? $attendance->clock_in->format('H:i') : null;
+        $this->clock_out = $attendance->clock_out ? $attendance->clock_out->format('H:i') : null;
         $this->notes = $attendance->notes;
 
         $this->showAttendanceModal = true;
@@ -116,8 +116,8 @@ class Index extends Component
         $this->employee_id = null;
         $this->date = null;
         $this->status = 'present';
-        $this->check_in = null;
-        $this->check_out = null;
+        $this->clock_in = null;
+        $this->clock_out = null;
         $this->notes = null;
     }
 

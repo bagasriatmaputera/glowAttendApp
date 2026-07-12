@@ -2,12 +2,98 @@
 
 namespace App\Livewire;
 
+use App\Models\Attendance;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 
 #[Layout('layouts.mobile_view')]
 class HomeAttendPage extends Component
 {
+    public $todayAttendance;
+    public $employeeId;
+    public $errorMessage = '';
+
+    public function mount()
+    {
+        $this->errorMessage = '';
+        $user = Auth::user();
+        if ($user && $user->employee) {
+            $this->employeeId = $user->employee->id;
+            $this->loadTodayAttendance();
+        }
+    }
+
+    public function loadTodayAttendance()
+    {
+        if ($this->employeeId) {
+            $this->todayAttendance = Attendance::where('employee_id', $this->employeeId)
+                ->whereDate('date', Carbon::today())
+                ->first();
+        }
+    }
+
+    public function clockIn($latitude, $longitude)
+    {
+        if (!$this->employeeId) {
+            $this->errorMessage = 'Data Karyawan tidak ditemukan untuk akun ini.';
+            return;
+        }
+
+        if ($this->todayAttendance) {
+            $this->errorMessage = 'Anda sudah melakukan Clock In hari ini.';
+            return;
+        }
+
+        Attendance::create([
+            'employee_id' => $this->employeeId,
+            'date' => Carbon::today(),
+            'clock_in' => Carbon::now(),
+            'latitude_in' => $latitude,
+            'longitude_in' => $longitude,
+            'status' => 'present',
+        ]);
+
+        $this->loadTodayAttendance();
+        session()->flash('message', 'Berhasil Clock In.');
+    }
+
+    public function clockOut($latitude, $longitude)
+    {
+        if (!$this->employeeId) {
+            $this->errorMessage = 'Data Karyawan tidak ditemukan untuk akun ini.';
+            return;
+        }
+
+        if (!$this->todayAttendance) {
+            $this->errorMessage = 'Anda belum melakukan Clock In hari ini.';
+            return;
+        }
+
+        if ($this->todayAttendance->clock_out) {
+            $this->errorMessage = 'Anda sudah melakukan Clock Out hari ini.';
+            return;
+        }
+
+        $this->todayAttendance->update([
+            'clock_out' => Carbon::now(),
+            'latitude_out' => $latitude,
+            'longitude_out' => $longitude,
+        ]);
+
+        $this->loadTodayAttendance();
+        session()->flash('message', 'Berhasil Clock Out.');
+    }
+
+    public function logout()
+    {
+        Auth::logout();
+        session()->invalidate();
+        session()->regenerateToken();
+        return $this->redirect('/login');
+    }
+
     public function render()
     {
         return view('livewire.home-attend-page');

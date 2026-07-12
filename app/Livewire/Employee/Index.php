@@ -7,6 +7,7 @@ use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Validation\Rule;
+use Carbon\Carbon;
 
 class Index extends Component
 {
@@ -61,8 +62,39 @@ class Index extends Component
     public function create()
     {
         $this->resetInputFields();
+        $this->join_date = Carbon::today()->format('Y-m-d');
+        $this->generateEmployeeCode();
         $this->loadAvailableUsers();
         $this->showEmployeeModal = true;
+    }
+
+    public function updatedJoinDate($value)
+    {
+        if ($value && !$this->employee_id) {
+            $this->generateEmployeeCode();
+        }
+    }
+
+    public function generateEmployeeCode()
+    {
+        if (!$this->join_date) {
+            return;
+        }
+
+        $prefix = 'EMP' . Carbon::parse($this->join_date)->format('dmy');
+        
+        $lastEmployee = Employee::where('employee_code', 'like', $prefix . '%')
+            ->orderBy('employee_code', 'desc')
+            ->first();
+
+        if ($lastEmployee) {
+            $lastNumber = (int) substr($lastEmployee->employee_code, strlen($prefix));
+            $increment = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+        } else {
+            $increment = '001';
+        }
+
+        $this->employee_code = $prefix . $increment;
     }
 
     public function edit($id)

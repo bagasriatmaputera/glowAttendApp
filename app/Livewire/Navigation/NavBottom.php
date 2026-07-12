@@ -14,7 +14,7 @@ class NavBottom extends Component
         ],
         [
             'nama' => 'Profile',
-            'route' => 'profile',
+            'route' => 'employee.profile',
             'icon' => 'user',
         ],
         [

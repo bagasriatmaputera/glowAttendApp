@@ -18,7 +18,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Total Karyawan</dt>
-                            <dd class="text-lg font-semibold text-gray-900">24</dd>
+                            <dd class="text-lg font-semibold text-gray-900">{{ $totalEmployees ?? 0 }}</dd>
                         </dl>
                     </div>
                 </div>
@@ -34,7 +34,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Hadir Hari Ini</dt>
-                            <dd class="text-lg font-semibold text-gray-900">18</dd>
+                            <dd class="text-lg font-semibold text-gray-900">{{ $presentToday ?? 0 }}</dd>
                         </dl>
                     </div>
                 </div>
@@ -50,7 +50,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Cuti Menunggu</dt>
-                            <dd class="text-lg font-semibold text-gray-900">3</dd>
+                            <dd class="text-lg font-semibold text-gray-900">{{ $pendingLeave ?? 0 }}</dd>
                         </dl>
                     </div>
                 </div>
@@ -66,7 +66,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Total Jadwal</dt>
-                            <dd class="text-lg font-semibold text-gray-900">12</dd>
+                            <dd class="text-lg font-semibold text-gray-900">{{ $totalSchedules ?? 0 }}</dd>
                         </dl>
                     </div>
                 </div>

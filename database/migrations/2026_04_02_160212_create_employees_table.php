@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('employees', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->unique()->constrained('users');
+            $table->unsignedBigInteger('user_id')->unique();
             $table->string('employee_code')->unique(); // Contoh: SLN-001
             $table->string('full_name');
             $table->string('phone');

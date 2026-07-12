@@ -39,21 +39,21 @@
                     @forelse($attendances as $attendance)
                         <tr class="hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-purple-50/50 transition-colors duration-150">
                             <td class="px-6 py-4">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
-                                    {{ $attendance->date }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4">
                                 <div class="flex items-center">
                                     <div class="h-10 w-10 flex-shrink-0">
-                                        <div class="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-semibold">
+                                        <div class="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-semibold shadow-sm">
                                             {{ substr($attendance->employee?->full_name ?? 'N/A', 0, 1) }}
                                         </div>
                                     </div>
                                     <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900">{{ $attendance->employee?->full_name ?? 'N/A' }}</div>
+                                        <div class="text-sm font-bold text-gray-900">{{ $attendance->employee?->full_name ?? 'N/A' }}</div>
                                     </div>
                                 </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-indigo-100/50 text-indigo-800 border border-indigo-200">
+                                    {{ \Carbon\Carbon::parse($attendance->date)->translatedFormat('d F Y') }}
+                                </span>
                             </td>
                             <td class="px-6 py-4">
                                 @switch($attendance->status)
@@ -92,10 +92,10 @@
                                 @endswitch
                             </td>
                             <td class="px-6 py-4">
-                                <span class="text-sm text-gray-600">{{ $attendance->check_in ?? '-' }}</span>
+                                <span class="text-sm text-gray-600 font-medium">{{ $attendance->clock_in ? \Carbon\Carbon::parse($attendance->clock_in)->format('H:i') : '-' }}</span>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="text-sm text-gray-600">{{ $attendance->check_out ?? '-' }}</span>
+                                <span class="text-sm text-gray-600 font-medium">{{ $attendance->clock_out ? \Carbon\Carbon::parse($attendance->clock_out)->format('H:i') : '-' }}</span>
                             </td>
                             <td class="px-6 py-4 text-right">
                                 <div class="flex justify-end space-x-2">
@@ -265,9 +265,9 @@
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">
                                         Waktu Check In
                                     </label>
-                                    <input type="time" wire:model="check_in" 
+                                    <input type="time" wire:model="clock_in" 
                                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white/80 backdrop-blur-sm transition-colors">
-                                    @error('check_in')
+                                    @error('clock_in')
                                         <span class="text-red-500 text-sm mt-1">{{ $message }}</span>
                                     @enderror
                                 </div>
@@ -277,9 +277,9 @@
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">
                                         Waktu Check Out
                                     </label>
-                                    <input type="time" wire:model="check_out" 
+                                    <input type="time" wire:model="clock_out" 
                                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white/80 backdrop-blur-sm transition-colors">
-                                    @error('check_out')
+                                    @error('clock_out')
                                         <span class="text-red-500 text-sm mt-1">{{ $message }}</span>
                                     @enderror
                                 </div>

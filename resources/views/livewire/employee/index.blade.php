@@ -215,9 +215,9 @@
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">
                                         Kode Karyawan <span class="text-red-500">*</span>
                                     </label>
-                                    <input type="text" wire:model="employee_code" 
+                                    <input type="text" wire:model="employee_code" readonly
                                            placeholder="contoh: EMP001"
-                                           class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white/80 backdrop-blur-sm transition-colors">
+                                           class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-gray-100 cursor-not-allowed text-gray-500 font-medium transition-colors">
                                     @error('employee_code')
                                         <span class="text-red-500 text-sm mt-1">{{ $message }}</span>
                                     @enderror
@@ -292,7 +292,7 @@
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">
                                         Tanggal Bergabung <span class="text-red-500">*</span>
                                     </label>
-                                    <input type="date" wire:model="join_date" 
+                                    <input type="date" wire:model.live="join_date" 
                                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white/80 backdrop-blur-sm transition-colors">
                                     @error('join_date')
                                         <span class="text-red-500 text-sm mt-1">{{ $message }}</span>

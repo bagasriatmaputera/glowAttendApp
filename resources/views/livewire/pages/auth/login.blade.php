@@ -21,9 +21,14 @@ new #[Layout('layouts.guest')] class extends Component
         Session::regenerate();
 
         if(Auth()->user()->hasRole(['SuperAdmin', 'Admin'])){
-            $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
+            $this->redirect(route('dashboard', absolute: false), navigate: true);
         } else {
-            $this->redirectIntended(default: route('home', absolute: false), navigate: true);
+            // Ensure Employee has an employee record
+            if (!Auth()->user()->employee) {
+                auth()->logout();
+                abort(403, 'Akses Ditolak: Akun Anda belum terdaftar sebagai Karyawan aktif. Silakan hubungi Administrator.');
+            }
+            $this->redirect(route('home', absolute: false), navigate: true);
         }
     }
 }; ?>
