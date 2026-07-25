@@ -10,40 +10,27 @@ use Carbon\Carbon;
 
 class CheckAbsentEmployees extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'app:check-absent-employees';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Check employees who are on shift today but have not recorded attendance, and send a notification.';
+    protected $description = 'Check employees who are on shift today but have not recorded attendance, send notification, and mark as absent.';
 
-    /**
-     * Execute the console command.
-     */
     public function handle()
     {
         $today = Carbon::today();
-        $dayOfWeek = strtolower($today->format('l')); // e.g. 'monday'
+        $dayOfWeek = strtolower($today->format('l'));
         $now = Carbon::now();
 
         $this->info("Checking absent employees for: {$today->format('Y-m-d')} ({$dayOfWeek}) at {$now->format('H:i:s')}");
 
-        // Get all schedules for today
         $schedules = EmployeeSchedule::with(['employee', 'schedule'])
             ->where('day_of_week', $dayOfWeek)
-            ->whereHas('employee', function($q) {
+            ->whereHas('employee', function ($q) {
                 $q->where('is_active', true);
             })
             ->get();
 
         $notifiedCount = 0;
+        $absentCount = 0;
 
         foreach ($schedules as $empSched) {
             $employee = $empSched->employee;
@@ -53,21 +40,17 @@ class CheckAbsentEmployees extends Command
                 continue;
             }
 
-            // Check if shift start time has passed (we compare hours & minutes of today)
             $shiftStart = Carbon::today()->setTimeFromTimeString($shift->clock_in_time->format('H:i:s'));
 
-            // Only notify if current time is past the shift start time
             if ($now->lt($shiftStart)) {
                 continue;
             }
 
-            // Check if there is already an attendance record for today
             $hasAttendance = Attendance::where('employee_id', $employee->id)
                 ->whereDate('date', $today)
                 ->exists();
 
             if (!$hasAttendance) {
-                // To avoid sending duplicate notifications for the same day, check if one was sent today
                 $alreadyNotified = Notification::where('employee_id', $employee->id)
                     ->where('type', 'attendance')
                     ->whereDate('created_at', $today)
@@ -83,9 +66,23 @@ class CheckAbsentEmployees extends Command
                     $notifiedCount++;
                     $this->line("Notified employee: {$employee->full_name}");
                 }
+
+                // Mark as absent if past shift start + grace period (60 minutes)
+                $graceEnd = $shiftStart->copy()->addMinutes(60);
+                if ($now->gt($graceEnd)) {
+                    Attendance::create([
+                        'employee_id' => $employee->id,
+                        'date' => $today,
+                        'status' => 'absent',
+                        'notes' => 'Otomatis: Tidak melakukan clock in pada shift ' . $shift->name,
+                    ]);
+                    $absentCount++;
+                    $this->line("Marked absent: {$employee->full_name}");
+                }
             }
         }
 
-        $this->info("Done. Sent notifications to {$notifiedCount} employees.");
+        $this->info("Done. Sent notifications to {$notifiedCount} employees, marked {$absentCount} as absent.");
     }
 }
+

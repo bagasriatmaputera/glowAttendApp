@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Attendance;
+use App\Models\EmployeeSchedule;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -15,6 +16,7 @@ class HomeAttendPage extends Component
     public $employeeId;
     public $errorMessage = '';
     public $notifications = [];
+    public $todaySchedule;
 
     public function mount()
     {
@@ -23,6 +25,7 @@ class HomeAttendPage extends Component
         if ($user && $user->employee) {
             $this->employeeId = $user->employee->id;
             $this->loadTodayAttendance();
+            $this->loadTodaySchedule();
             $this->loadNotifications();
         }
     }
@@ -32,6 +35,17 @@ class HomeAttendPage extends Component
         if ($this->employeeId) {
             $this->todayAttendance = Attendance::where('employee_id', $this->employeeId)
                 ->whereDate('date', Carbon::today())
+                ->first();
+        }
+    }
+
+    public function loadTodaySchedule()
+    {
+        if ($this->employeeId) {
+            $dayOfWeek = strtolower(Carbon::today()->format('l'));
+            $this->todaySchedule = EmployeeSchedule::with('schedule')
+                ->where('employee_id', $this->employeeId)
+                ->where('day_of_week', $dayOfWeek)
                 ->first();
         }
     }
@@ -70,13 +84,24 @@ class HomeAttendPage extends Component
             return;
         }
 
+        $status = 'present';
+
+        if ($this->todaySchedule && $this->todaySchedule->schedule) {
+            $shiftStart = $this->todaySchedule->schedule->clock_in_time;
+            $graceEnd = $shiftStart->copy()->addMinutes(15);
+
+            if (Carbon::now()->gt($graceEnd)) {
+                $status = 'late';
+            }
+        }
+
         Attendance::create([
             'employee_id' => $this->employeeId,
             'date' => Carbon::today(),
             'clock_in' => Carbon::now(),
             'latitude_in' => $latitude,
             'longitude_in' => $longitude,
-            'status' => 'present',
+            'status' => $status,
         ]);
 
         $this->loadTodayAttendance();
@@ -123,3 +148,4 @@ class HomeAttendPage extends Component
         return view('livewire.home-attend-page');
     }
 }
+

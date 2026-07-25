@@ -99,10 +99,35 @@
         <!-- Attendance Card -->
         <div class="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-5 border border-gray-100">
             <!-- Current Date & Time -->
-            <div class="flex items-center gap-2 text-[13px] font-bold text-gray-700 mb-5">
+            <div class="flex items-center gap-2 text-[13px] font-bold text-gray-700 mb-3">
                 <svg class="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                <span>{{ now()->format('l, d F Y') }} <span class="mx-1 text-gray-400 font-normal">|</span> 09:30:00 - 17:30:00</span>
+                <span>{{ now()->format('l, d F Y') }}</span>
             </div>
+
+            @if($todaySchedule && $todaySchedule->schedule)
+                <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl px-4 py-3 mb-4 border border-indigo-100/50">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-[13px] font-bold text-indigo-700">{{ $todaySchedule->schedule->name }}</span>
+                        </div>
+                        <span class="text-[12px] font-semibold text-indigo-500">
+                            {{ $todaySchedule->schedule->clock_in_time->format('H:i') }} - {{ $todaySchedule->schedule->clock_out_time->format('H:i') }}
+                        </span>
+                    </div>
+                </div>
+            @else
+                <div class="bg-gray-50 rounded-xl px-4 py-3 mb-4 border border-gray-100">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="text-[13px] font-medium text-gray-500">Tidak ada jadwal shift hari ini</span>
+                    </div>
+                </div>
+            @endif
             
             <!-- Action Buttons -->
             <div class="flex gap-4">
