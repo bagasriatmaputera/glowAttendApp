@@ -14,6 +14,7 @@ class HomeAttendPage extends Component
     public $todayAttendance;
     public $employeeId;
     public $errorMessage = '';
+    public $notifications = [];
 
     public function mount()
     {
@@ -22,6 +23,7 @@ class HomeAttendPage extends Component
         if ($user && $user->employee) {
             $this->employeeId = $user->employee->id;
             $this->loadTodayAttendance();
+            $this->loadNotifications();
         }
     }
 
@@ -31,6 +33,28 @@ class HomeAttendPage extends Component
             $this->todayAttendance = Attendance::where('employee_id', $this->employeeId)
                 ->whereDate('date', Carbon::today())
                 ->first();
+        }
+    }
+
+    public function loadNotifications()
+    {
+        if ($this->employeeId) {
+            $this->notifications = \App\Models\Notification::where('employee_id', $this->employeeId)
+                ->orderBy('created_at', 'desc')
+                ->take(3)
+                ->get();
+        }
+    }
+
+    public function markAsRead($id)
+    {
+        $notification = \App\Models\Notification::find($id);
+        if ($notification && $notification->employee_id === $this->employeeId) {
+            $notification->update([
+                'is_read' => true,
+                'read_at' => now(),
+            ]);
+            $this->loadNotifications();
         }
     }
 

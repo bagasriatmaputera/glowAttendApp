@@ -13,14 +13,24 @@ class NavBottom extends Component
             'icon' => 'home',
         ],
         [
+            'nama' => 'Employees',
+            'route' => 'employees',
+            'icon' => 'users',
+        ],
+        [
+            'nama' => 'Requests',
+            'route' => 'leave-form-page',
+            'icon' => 'document',
+        ],
+        [
+            'nama' => 'Inbox',
+            'route' => 'inbox',
+            'icon' => 'bell',
+        ],
+        [
             'nama' => 'Profile',
             'route' => 'employee.profile',
             'icon' => 'user',
-        ],
-        [
-            'nama' => 'Setting',
-            'route' => 'settings',
-            'icon' => 'settings',
         ],
     ];
     

@@ -123,14 +123,29 @@ class Index extends Component
 
     public function render()
     {
+        $roleName = auth()->user()->roles->first()->name ?? '';
+        
+        $query = Attendance::with('employee');
+        
+        if ($roleName === 'Employee') {
+            $employeeId = auth()->user()->employee?->id;
+            $query->where('employee_id', $employeeId);
+            
+            if ($this->search) {
+                $query->where(function ($q) {
+                    $q->where('date', 'like', '%' . $this->search . '%')
+                      ->orWhere('status', 'like', '%' . $this->search . '%');
+                });
+            }
+        } else {
+            $query->whereHas('employee', function ($q) {
+                $q->where('full_name', 'like', '%' . $this->search . '%')
+                  ->orWhere('employee_code', 'like', '%' . $this->search . '%');
+            });
+        }
+
         return view('livewire.attendance.index', [
-            'attendances' => Attendance::with('employee')
-                ->whereHas('employee', function ($q) {
-                    $q->where('full_name', 'like', '%' . $this->search . '%')
-                      ->orWhere('employee_code', 'like', '%' . $this->search . '%');
-                })
-                ->latest()
-                ->paginate(10),
+            'attendances' => $query->latest()->paginate(10),
             'employees' => Employee::where('is_active', true)->get(),
         ]);
     }

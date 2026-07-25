@@ -45,6 +45,11 @@ class Employee extends Model
         return $this->hasMany(EmployeeSchedule::class);
     }
 
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+
     public function schedules()
     {
         return $this->belongsToMany(Schedule::class, 'employee_schedules')

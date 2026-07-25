@@ -1,8 +1,11 @@
 <ul class="m-4 grid grid-cols-3 gap-4 p-4">
     @foreach($menu as $item)
         @if(in_array($roleUser, $item['role']))
+            @php
+                $routeExists = \Illuminate\Support\Facades\Route::has($item['route']);
+            @endphp
             <li>
-                <a href="" {{-- INSTEAD {{ route($item['route']) }} --}}
+                <a href="{{ $routeExists ? route($item['route']) : '#' }}"
                    class="flex flex-col items-center gap-2">
                     
                     {{-- Icon dengan border rounded --}}

@@ -30,7 +30,7 @@ class Index extends Component
 
     public function mount()
     {
-        $this->isHasPermission = auth()->user()->hasRole(['manager', 'admin']);
+        $this->isHasPermission = auth()->user()->hasRole(['SuperAdmin', 'Admin']);
     }
 
 
@@ -59,7 +59,10 @@ class Index extends Component
         
         $this->validate();
 
-        LeaveRequest::updateOrCreate(
+        $isNew = !$this->leave_request_id;
+        $oldRequest = $isNew ? null : LeaveRequest::find($this->leave_request_id);
+
+        $leaveRequest = LeaveRequest::updateOrCreate(
             ['id' => $this->leave_request_id],
             [
                 'employee_id' => $this->employee_id,
@@ -71,6 +74,25 @@ class Index extends Component
                 'approved_by' => $this->approved_by,
             ]
         );
+
+        if ($isNew) {
+            \App\Models\Notification::send(
+                $leaveRequest->employee_id,
+                'leave_request',
+                'Pengajuan Cuti Dibuat oleh Admin',
+                "Pengajuan cuti Anda (" . ucfirst($leaveRequest->leave_type) . ") dari tanggal " . \Carbon\Carbon::parse($leaveRequest->start_date)->format('d F Y') . " s.d " . \Carbon\Carbon::parse($leaveRequest->end_date)->format('d F Y') . " telah dibuat dengan status: " . strtoupper($leaveRequest->status) . "."
+            );
+        } else {
+            if ($oldRequest && $oldRequest->status !== $leaveRequest->status) {
+                $statusText = $leaveRequest->status === 'approved' ? 'DISETUJUI' : ($leaveRequest->status === 'rejected' ? 'DITOLAK' : strtoupper($leaveRequest->status));
+                \App\Models\Notification::send(
+                    $leaveRequest->employee_id,
+                    'leave_request',
+                    'Status Pengajuan Cuti Diperbarui',
+                    "Pengajuan cuti Anda (" . ucfirst($leaveRequest->leave_type) . ") dari tanggal " . \Carbon\Carbon::parse($leaveRequest->start_date)->format('d F Y') . " s.d " . \Carbon\Carbon::parse($leaveRequest->end_date)->format('d F Y') . " kini berstatus: " . $statusText . "."
+                );
+            }
+        }
 
         $this->closeModal();
         $this->dispatch('leave-request-saved');
@@ -136,6 +158,13 @@ class Index extends Component
             'status' => 'approved',
             'approved_by' => \Illuminate\Support\Facades\Auth::id(),
         ]);
+
+        \App\Models\Notification::send(
+            $leaveRequest->employee_id,
+            'leave_request',
+            'Pengajuan Cuti Disetujui',
+            "Pengajuan cuti Anda (" . ucfirst($leaveRequest->leave_type) . ") dari tanggal " . $leaveRequest->start_date->format('d F Y') . " s.d " . $leaveRequest->end_date->format('d F Y') . " telah DISETUJUI."
+        );
         
         $this->dispatch('leave-request-approved');
     }
@@ -155,6 +184,13 @@ class Index extends Component
             'status' => 'rejected',
             'approved_by' => \Illuminate\Support\Facades\Auth::id(),
         ]);
+
+        \App\Models\Notification::send(
+            $leaveRequest->employee_id,
+            'leave_request',
+            'Pengajuan Cuti Ditolak',
+            "Pengajuan cuti Anda (" . ucfirst($leaveRequest->leave_type) . ") dari tanggal " . $leaveRequest->start_date->format('d F Y') . " s.d " . $leaveRequest->end_date->format('d F Y') . " telah DITOLAK."
+        );
         
         $this->dispatch('leave-request-rejected');
     }

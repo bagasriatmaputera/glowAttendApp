@@ -20,6 +20,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('profile-karyawan', \App\Livewire\EmployeeProfilePage::class)->name('employee.profile');
         Route::get('leave-form', \App\Livewire\LeaveFormPage::class)->name('leave-form-page');
         Route::get('history', \App\Livewire\AttendanceHistory::class)->name('history');
+        Route::get('notifications', \App\Livewire\NotificationPage::class)->name('notifications');
     });
 
     // Admin & Super Admin Routes

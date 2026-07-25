@@ -36,13 +36,28 @@ class Index extends Component
     {
         $this->validate();
 
-        EmployeeSchedule::updateOrCreate(
+        $isNew = !$this->schedule_id;
+
+        $employeeSchedule = EmployeeSchedule::updateOrCreate(
             ['id' => $this->schedule_id],
             [
                 'employee_id' => $this->employee_id,
                 'schedule_id' => $this->schedule_type_id,
                 'day_of_week' => $this->day_of_week,
             ]
+        );
+
+        $sched = Schedule::find($this->schedule_type_id);
+        $timeInfo = $sched ? " (" . \Carbon\Carbon::parse($sched->clock_in_time)->format('H:i') . " - " . \Carbon\Carbon::parse($sched->clock_out_time)->format('H:i') . ")" : "";
+        $schedName = $sched ? $sched->name : "";
+
+        \App\Models\Notification::send(
+            $this->employee_id,
+            'schedule',
+            $isNew ? 'Jadwal Shift Baru Ditambahkan' : 'Jadwal Shift Diperbarui',
+            $isNew 
+                ? "Jadwal shift Anda untuk hari " . ucfirst($this->day_of_week) . " telah ditambahkan: " . $schedName . $timeInfo . "."
+                : "Jadwal shift Anda untuk hari " . ucfirst($this->day_of_week) . " telah diperbarui menjadi: " . $schedName . $timeInfo . "."
         );
 
         $this->closeModal();

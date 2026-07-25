@@ -18,20 +18,32 @@ class MenuCard extends Component
         ],
         [
             'nama'  => 'Cuti',
-            'role'  => ['Admin', 'Employee', 'SuperAdmin'],
-            'route' => 'cuti.index',
+            'role'  => ['Admin', 'SuperAdmin'],
+            'route' => 'leave-requests.index',
+            'icon'  => 'calendar',
+        ],
+        [
+            'nama'  => 'Cuti Karyawan',
+            'role'  => ['Employee'],
+            'route' => 'leave-form-page',
             'icon'  => 'calendar',
         ],
         [
             'nama'  => 'Absen',
-            'role'  => ['Admin', 'Employee', 'SuperAdmin'],
-            'route' => 'absen.index',
+            'role'  => ['Admin', 'SuperAdmin'],
+            'route' => 'attendance.index',
+            'icon'  => 'clock',
+        ],
+        [
+            'nama'  => 'Riwayat Absen',
+            'role'  => ['Employee'],
+            'route' => 'history',
             'icon'  => 'clock',
         ],
         [
             'nama'  => 'Karyawan',
-            'role'  => ['Admin', 'SuperAdmin', 'Employee'],
-            'route' => 'karyawan.index',
+            'role'  => ['Admin', 'SuperAdmin'],
+            'route' => 'employees',
             'icon'  => 'users',
         ]
     ];
@@ -39,7 +51,6 @@ class MenuCard extends Component
     public function mount()
     {   
         $this->roleUser = auth()->user()->roles->first()->name;
-
         // dd($this->roleUser);
     }
     
