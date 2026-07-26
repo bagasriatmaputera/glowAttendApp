@@ -4,9 +4,12 @@ namespace App\Livewire\Attendance;
 
 use App\Models\Attendance;
 use App\Models\Employee;
+use App\Exports\AttendanceExport;
+use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends Component
 {
@@ -25,6 +28,18 @@ class Index extends Component
     public bool $showAttendanceModal = false;
     public bool $showDeleteModal = false;
 
+    // Export properties
+    public bool $showExportModal = false;
+    public $exportDateFrom;
+    public $exportDateTo;
+    public $exportEmployeeId;
+
+    public function mount()
+    {
+        $this->exportDateFrom = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $this->exportDateTo = Carbon::now()->format('Y-m-d');
+    }
+
     protected function rules()
     {
         return [
@@ -36,6 +51,21 @@ class Index extends Component
             'notes' => 'nullable|string|max:500',
         ];
     }
+
+    protected function exportRules()
+    {
+        return [
+            'exportDateFrom' => 'required|date',
+            'exportDateTo' => 'required|date|after_or_equal:exportDateFrom',
+            'exportEmployeeId' => 'nullable|exists:employees,id',
+        ];
+    }
+
+    protected $messages = [
+        'exportDateFrom.required' => 'Tanggal awal wajib diisi.',
+        'exportDateTo.required' => 'Tanggal akhir wajib diisi.',
+        'exportDateTo.after_or_equal' => 'Tanggal akhir harus setelah atau sama dengan tanggal awal.',
+    ];
 
     public function store()
     {
@@ -93,11 +123,6 @@ class Index extends Component
         $this->dispatch('attendance-deleted');
     }
 
-    public function openModal()
-    {
-        $this->showAttendanceModal = true;
-    }
-
     public function closeModal()
     {
         $this->showAttendanceModal = false;
@@ -121,16 +146,53 @@ class Index extends Component
         $this->notes = null;
     }
 
+    // ========== Export ==========
+
+    public function openExportModal()
+    {
+        $this->resetExportForm();
+        $this->showExportModal = true;
+    }
+
+    public function closeExportModal()
+    {
+        $this->showExportModal = false;
+        $this->resetExportForm();
+    }
+
+    public function resetExportForm()
+    {
+        $this->exportDateFrom = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $this->exportDateTo = Carbon::now()->format('Y-m-d');
+        $this->exportEmployeeId = null;
+        $this->resetValidation();
+    }
+
+    public function export()
+    {
+        $this->validate($this->exportRules());
+
+        $filename = 'rekap-absensi-' . $this->exportDateFrom . '-sampai-' . $this->exportDateTo;
+        $employeeId = $this->exportEmployeeId ?: null;
+
+        $this->closeExportModal();
+        return Excel::download(
+            new AttendanceExport($this->exportDateFrom, $this->exportDateTo, $employeeId),
+            $filename . '.xlsx',
+            \Maatwebsite\Excel\Excel::XLSX
+        );
+    }
+
     public function render()
     {
         $roleName = auth()->user()->roles->first()->name ?? '';
-        
+
         $query = Attendance::with('employee');
-        
+
         if ($roleName === 'Employee') {
             $employeeId = auth()->user()->employee?->id;
             $query->where('employee_id', $employeeId);
-            
+
             if ($this->search) {
                 $query->where(function ($q) {
                     $q->where('date', 'like', '%' . $this->search . '%')
@@ -150,3 +212,4 @@ class Index extends Component
         ]);
     }
 }
+

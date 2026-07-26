@@ -133,12 +133,12 @@
 
     <!-- Leave Request Modal -->
     <div x-data="{ open: @entangle('showLeaveFormModal') }" x-cloak>
-        <div x-show="open" class="fixed inset-0 z-50 flex items-end justify-center sm:items-center p-4">
+        <div x-show="open" class="fixed inset-0 z-50 flex items-center justify-center p-4">
             <!-- Modal Overlay -->
             <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" wire:click="closeModal" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
 
             <!-- Modal Content -->
-            <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-8 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-8 sm:scale-95" class="relative bg-white w-full max-w-md rounded-t-[2rem] sm:rounded-2xl shadow-2xl z-10 overflow-hidden flex flex-col max-h-[85vh]">
+            <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-8 scale-95" x-transition:enter-end="opacity-100 translate-y-0 scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 scale-100" x-transition:leave-end="opacity-0 translate-y-8 scale-95" class="relative bg-white w-full max-w-md rounded-2xl shadow-2xl z-10 overflow-hidden flex flex-col max-h-[75vh]">
                 <!-- Modal Header -->
                 <div class="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4 text-white flex justify-between items-center">
                     <div>
@@ -150,9 +150,9 @@
                     </button>
                 </div>
 
-                <!-- Form Body -->
-                <div class="p-5 overflow-y-auto space-y-4">
-                    <form wire:submit.prevent="store" class="space-y-4">
+                <!-- Form Body (scrollable fields) -->
+                <div class="flex-1 p-5 overflow-y-auto space-y-4">
+                    <div class="space-y-4">
                         <!-- Leave Type -->
                         <div>
                             <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Jenis Cuti <span class="text-red-500">*</span></label>
@@ -204,17 +204,17 @@
                                 <span class="text-red-500 text-[11px] mt-1 block">{{ $message }}</span>
                             @enderror
                         </div>
+                    </div>
+                </div>
 
-                        <!-- Action Buttons -->
-                        <div class="flex gap-3 pt-3 border-t border-gray-100">
-                            <button type="button" wire:click="closeModal" class="flex-1 py-2.5 border border-gray-200 text-gray-500 rounded-xl font-bold text-xs hover:bg-gray-50 transition-colors">
-                                Batal
-                            </button>
-                            <button type="submit" class="flex-1 py-2.5 bg-[#6366f1] text-white rounded-xl font-bold text-xs hover:bg-[#5355d1] transition-colors shadow-lg shadow-indigo-500/20">
-                                Ajukan Cuti
-                            </button>
-                        </div>
-                    </form>
+                <!-- Action Buttons (always visible) -->
+                <div class="px-5 py-4 border-t border-gray-200 bg-white flex gap-3 shrink-0">
+                    <button type="button" wire:click="closeModal" class="flex-1 py-2.5 border border-gray-300 text-gray-600 rounded-xl font-bold text-xs hover:bg-gray-50 transition-colors">
+                        Batal
+                    </button>
+                    <button wire:click="store" class="flex-1 py-2.5 bg-[#6366f1] text-white rounded-xl font-bold text-xs hover:bg-[#5355d1] transition-colors shadow-lg shadow-indigo-500/20">
+                        Ajukan Cuti
+                    </button>
                 </div>
             </div>
         </div>

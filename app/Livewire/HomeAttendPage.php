@@ -12,11 +12,8 @@ use Livewire\Attributes\Layout;
 #[Layout('layouts.mobile_view')]
 class HomeAttendPage extends Component
 {
-    public $todayAttendance;
     public $employeeId;
     public $errorMessage = '';
-    public $notifications = [];
-    public $todaySchedule;
 
     public function mount()
     {
@@ -24,39 +21,6 @@ class HomeAttendPage extends Component
         $user = Auth::user();
         if ($user && $user->employee) {
             $this->employeeId = $user->employee->id;
-            $this->loadTodayAttendance();
-            $this->loadTodaySchedule();
-            $this->loadNotifications();
-        }
-    }
-
-    public function loadTodayAttendance()
-    {
-        if ($this->employeeId) {
-            $this->todayAttendance = Attendance::where('employee_id', $this->employeeId)
-                ->whereDate('date', Carbon::today())
-                ->first();
-        }
-    }
-
-    public function loadTodaySchedule()
-    {
-        if ($this->employeeId) {
-            $dayOfWeek = strtolower(Carbon::today()->format('l'));
-            $this->todaySchedule = EmployeeSchedule::with('schedule')
-                ->where('employee_id', $this->employeeId)
-                ->where('day_of_week', $dayOfWeek)
-                ->first();
-        }
-    }
-
-    public function loadNotifications()
-    {
-        if ($this->employeeId) {
-            $this->notifications = \App\Models\Notification::where('employee_id', $this->employeeId)
-                ->orderBy('created_at', 'desc')
-                ->take(3)
-                ->get();
         }
     }
 
@@ -68,7 +32,6 @@ class HomeAttendPage extends Component
                 'is_read' => true,
                 'read_at' => now(),
             ]);
-            $this->loadNotifications();
         }
     }
 
@@ -79,15 +42,25 @@ class HomeAttendPage extends Component
             return;
         }
 
-        if ($this->todayAttendance) {
+        $todayAttendance = Attendance::where('employee_id', $this->employeeId)
+            ->whereDate('date', Carbon::today())
+            ->first();
+
+        if ($todayAttendance) {
             $this->errorMessage = 'Anda sudah melakukan Clock In hari ini.';
             return;
         }
 
         $status = 'present';
 
-        if ($this->todaySchedule && $this->todaySchedule->schedule) {
-            $shiftStart = $this->todaySchedule->schedule->clock_in_time;
+        $dayOfWeek = strtolower(Carbon::today()->format('l'));
+        $todaySchedule = EmployeeSchedule::with('schedule')
+            ->where('employee_id', $this->employeeId)
+            ->where('day_of_week', $dayOfWeek)
+            ->first();
+
+        if ($todaySchedule && $todaySchedule->schedule) {
+            $shiftStart = $todaySchedule->schedule->clock_in_time;
             $graceEnd = $shiftStart->copy()->addMinutes(15);
 
             if (Carbon::now()->gt($graceEnd)) {
@@ -104,7 +77,6 @@ class HomeAttendPage extends Component
             'status' => $status,
         ]);
 
-        $this->loadTodayAttendance();
         session()->flash('message', 'Berhasil Clock In.');
     }
 
@@ -115,23 +87,26 @@ class HomeAttendPage extends Component
             return;
         }
 
-        if (!$this->todayAttendance) {
+        $todayAttendance = Attendance::where('employee_id', $this->employeeId)
+            ->whereDate('date', Carbon::today())
+            ->first();
+
+        if (!$todayAttendance) {
             $this->errorMessage = 'Anda belum melakukan Clock In hari ini.';
             return;
         }
 
-        if ($this->todayAttendance->clock_out) {
+        if ($todayAttendance->clock_out) {
             $this->errorMessage = 'Anda sudah melakukan Clock Out hari ini.';
             return;
         }
 
-        $this->todayAttendance->update([
+        $todayAttendance->update([
             'clock_out' => Carbon::now(),
             'latitude_out' => $latitude,
             'longitude_out' => $longitude,
         ]);
 
-        $this->loadTodayAttendance();
         session()->flash('message', 'Berhasil Clock Out.');
     }
 
@@ -145,7 +120,32 @@ class HomeAttendPage extends Component
 
     public function render()
     {
-        return view('livewire.home-attend-page');
+        $todayAttendance = null;
+        $todaySchedule = null;
+        $notifications = [];
+
+        if ($this->employeeId) {
+            $todayAttendance = Attendance::where('employee_id', $this->employeeId)
+                ->whereDate('date', Carbon::today())
+                ->first();
+
+            $dayOfWeek = strtolower(Carbon::today()->format('l'));
+            $todaySchedule = EmployeeSchedule::with('schedule')
+                ->where('employee_id', $this->employeeId)
+                ->where('day_of_week', $dayOfWeek)
+                ->first();
+
+            $notifications = \App\Models\Notification::where('employee_id', $this->employeeId)
+                ->orderBy('created_at', 'desc')
+                ->take(3)
+                ->get();
+        }
+
+        return view('livewire.home-attend-page', [
+            'todayAttendance' => $todayAttendance,
+            'todaySchedule' => $todaySchedule,
+            'notifications' => $notifications,
+        ]);
     }
 }
 
