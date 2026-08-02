@@ -3,7 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Attendance;
-use App\Models\EmployeeSchedule;
+use App\Models\OfficeLocation;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -51,25 +51,25 @@ class HomeAttendPage extends Component
             return;
         }
 
-        $status = 'present';
-
-        $dayOfWeek = strtolower(Carbon::today()->format('l'));
-        $todaySchedule = EmployeeSchedule::with('schedule')
-            ->where('employee_id', $this->employeeId)
-            ->where('day_of_week', $dayOfWeek)
-            ->first();
-
-        if ($todaySchedule && $todaySchedule->schedule) {
-            $shiftStart = $todaySchedule->schedule->clock_in_time;
-            $graceEnd = $shiftStart->copy()->addMinutes(15);
-
-            if (Carbon::now()->gt($graceEnd)) {
-                $status = 'late';
-            }
+        $location = OfficeLocation::active()->first();
+        if (!$location) {
+            $this->errorMessage = 'Lokasi kantor belum diatur. Silakan hubungi Administrator.';
+            return;
         }
+
+        $distance = $location->distanceTo((float) $latitude, (float) $longitude);
+        if ($distance > $location->radius) {
+            $this->errorMessage = 'Anda berada di luar area kantor. Clock In ditolak.';
+            return;
+        }
+
+        $status = Carbon::now()->gt($location->clock_in_time->copy()->addMinutes(15))
+            ? 'late'
+            : 'present';
 
         Attendance::create([
             'employee_id' => $this->employeeId,
+            'office_location_id' => $location->id,
             'date' => Carbon::today(),
             'clock_in' => Carbon::now(),
             'latitude_in' => $latitude,
@@ -101,6 +101,18 @@ class HomeAttendPage extends Component
             return;
         }
 
+        $location = OfficeLocation::active()->first();
+        if (!$location) {
+            $this->errorMessage = 'Lokasi kantor belum diatur. Silakan hubungi Administrator.';
+            return;
+        }
+
+        $distance = $location->distanceTo((float) $latitude, (float) $longitude);
+        if ($distance > $location->radius) {
+            $this->errorMessage = 'Anda berada di luar area kantor. Clock Out ditolak.';
+            return;
+        }
+
         $todayAttendance->update([
             'clock_out' => Carbon::now(),
             'latitude_out' => $latitude,
@@ -121,18 +133,15 @@ class HomeAttendPage extends Component
     public function render()
     {
         $todayAttendance = null;
-        $todaySchedule = null;
         $notifications = [];
+        $announcements = \App\Models\Announcement::active()
+            ->latest()
+            ->take(3)
+            ->get();
 
         if ($this->employeeId) {
             $todayAttendance = Attendance::where('employee_id', $this->employeeId)
                 ->whereDate('date', Carbon::today())
-                ->first();
-
-            $dayOfWeek = strtolower(Carbon::today()->format('l'));
-            $todaySchedule = EmployeeSchedule::with('schedule')
-                ->where('employee_id', $this->employeeId)
-                ->where('day_of_week', $dayOfWeek)
                 ->first();
 
             $notifications = \App\Models\Notification::where('employee_id', $this->employeeId)
@@ -143,8 +152,8 @@ class HomeAttendPage extends Component
 
         return view('livewire.home-attend-page', [
             'todayAttendance' => $todayAttendance,
-            'todaySchedule' => $todaySchedule,
             'notifications' => $notifications,
+            'announcements' => $announcements,
         ]);
     }
 }

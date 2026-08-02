@@ -4,9 +4,12 @@ namespace App\Livewire\Employee;
 
 use App\Models\Employee;
 use App\Models\User;
+use App\Exports\EmployeeExport;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Hash;
+use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 
 class Index extends Component
@@ -14,10 +17,13 @@ class Index extends Component
     use WithPagination;
 
     public $search = '';
-    
+
     public $employee_id;
     public $user_id;
     public $employee_code;
+    public $email;
+    public $username;
+    public $role = 'Employee';
     public $full_name;
     public $phone;
     public $address;
@@ -25,13 +31,21 @@ class Index extends Component
     public $join_date;
     public $is_active = true;
 
-    public $availableUsers = [];
+    public $showEmployeeModal = false;
+    public $showDeleteModal = false;
+
+    // Export properties
+    public bool $showExportModal = false;
+    public $exportRole;
+    public $exportStatus = '';
 
     protected function rules()
     {
         return [
-            'user_id' => ['required', 'exists:users,id', Rule::unique('employees', 'user_id')->ignore($this->employee_id)],
             'employee_code' => ['required', 'string', 'max:255', Rule::unique('employees', 'employee_code')->ignore($this->employee_id)],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->user_id)],
+            'username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($this->user_id)],
+            'role' => 'required|in:Owner,Management,Employee',
             'full_name' => 'required|string|max:255',
             'phone' => 'required|string|max:255',
             'address' => 'required|string',
@@ -41,30 +55,11 @@ class Index extends Component
         ];
     }
 
-    public function mount()
-    {
-        $this->loadAvailableUsers();
-    }
-
-    public function loadAvailableUsers()
-    {
-        // Get users that don't have an employee record, or include the current employee's user
-        $query = User::whereDoesntHave('employee');
-        if ($this->employee_id && $this->user_id) {
-            $query->orWhere('id', $this->user_id);
-        }
-        $this->availableUsers = $query->get();
-    }
-
-    public $showEmployeeModal = false;
-    public $showDeleteModal = false;
-
     public function create()
     {
         $this->resetInputFields();
         $this->join_date = Carbon::today()->format('Y-m-d');
         $this->generateEmployeeCode();
-        $this->loadAvailableUsers();
         $this->showEmployeeModal = true;
     }
 
@@ -82,8 +77,8 @@ class Index extends Component
         }
 
         $prefix = 'EMP' . Carbon::parse($this->join_date)->format('dmy');
-        
-        $lastEmployee = Employee::where('employee_code', 'like', $prefix . '%')
+
+        $lastEmployee = Employee::withTrashed()->where('employee_code', 'like', $prefix . '%')
             ->orderBy('employee_code', 'desc')
             ->first();
 
@@ -97,11 +92,32 @@ class Index extends Component
         $this->employee_code = $prefix . $increment;
     }
 
+    private function mapRole(?string $select): string
+    {
+        return match ($select) {
+            'Owner' => 'Management',
+            'Management' => 'Admin',
+            default => 'Employee',
+        };
+    }
+
+    private function mapRoleToSelect(?string $roleName): string
+    {
+        return match ($roleName) {
+            'Management' => 'Owner',
+            'Admin' => 'Management',
+            default => 'Employee',
+        };
+    }
+
     public function edit($id)
     {
         $employee = Employee::findOrFail($id);
         $this->employee_id = $id;
         $this->user_id = $employee->user_id;
+        $this->email = $employee->user?->email ?? '';
+        $this->username = $employee->user?->username ?? '';
+        $this->role = $this->mapRoleToSelect($employee->user?->roles->first()?->name);
         $this->employee_code = $employee->employee_code;
         $this->full_name = $employee->full_name;
         $this->phone = $employee->phone;
@@ -110,7 +126,6 @@ class Index extends Component
         $this->join_date = $employee->join_date ? $employee->join_date->format('Y-m-d') : '';
         $this->is_active = $employee->is_active;
 
-        $this->loadAvailableUsers();
         $this->showEmployeeModal = true;
     }
 
@@ -118,10 +133,28 @@ class Index extends Component
     {
         $this->validate();
 
+        $isUpdate = (bool) $this->employee_id;
+
+        if ($this->employee_id) {
+            $user = User::findOrFail($this->user_id);
+            $user->update([
+                'email' => $this->email,
+                'username' => $this->username,
+            ]);
+        } else {
+            $user = User::create([
+                'email' => $this->email,
+                'username' => $this->username,
+                'password' => Hash::make('password'),
+            ]);
+        }
+
+        $user->syncRoles([$this->mapRole($this->role)]);
+
         Employee::updateOrCreate(
             ['id' => $this->employee_id],
             [
-                'user_id' => $this->user_id,
+                'user_id' => $user->id,
                 'employee_code' => $this->employee_code,
                 'full_name' => $this->full_name,
                 'phone' => $this->phone,
@@ -131,6 +164,10 @@ class Index extends Component
                 'is_active' => $this->is_active,
             ]
         );
+
+        $this->dispatch('toast', type: 'success', message: $isUpdate
+            ? 'Data karyawan berhasil diperbarui.'
+            : 'Karyawan baru berhasil ditambahkan.');
 
         $this->closeModal();
     }
@@ -145,9 +182,15 @@ class Index extends Component
     {
         if ($this->employee_id) {
             Employee::findOrFail($this->employee_id)->delete();
+            $this->dispatch('toast', type: 'success', message: 'Karyawan berhasil dihapus.');
         }
-        $this->showDeleteModal = false;
+        $this->closeDeleteModal();
         $this->employee_id = null;
+    }
+
+    public function closeDeleteModal()
+    {
+        $this->showDeleteModal = false;
     }
 
     public function closeModal()
@@ -161,7 +204,10 @@ class Index extends Component
     private function resetInputFields()
     {
         $this->employee_id = null;
-        $this->user_id = '';
+        $this->user_id = null;
+        $this->email = '';
+        $this->username = '';
+        $this->role = 'Employee';
         $this->employee_code = '';
         $this->full_name = '';
         $this->phone = '';
@@ -169,6 +215,49 @@ class Index extends Component
         $this->position = '';
         $this->join_date = '';
         $this->is_active = true;
+    }
+
+    // ========== Export ==========
+
+    public function openExportModal()
+    {
+        $this->resetExportForm();
+        $this->showExportModal = true;
+    }
+
+    public function closeExportModal()
+    {
+        $this->showExportModal = false;
+        $this->resetExportForm();
+    }
+
+    public function resetExportForm()
+    {
+        $this->exportRole = null;
+        $this->exportStatus = '';
+        $this->resetValidation();
+    }
+
+    public function export()
+    {
+        $this->validate([
+            'exportRole' => 'nullable|in:Management,Admin,Employee',
+            'exportStatus' => 'nullable|in:active,inactive',
+        ]);
+
+        $status = match ($this->exportStatus) {
+            'active' => 1,
+            'inactive' => 0,
+            default => null,
+        };
+
+        $this->closeExportModal();
+
+        return Excel::download(
+            new EmployeeExport($this->exportRole, $status),
+            'data-karyawan-' . now()->format('Ymd-His') . '.xlsx',
+            \Maatwebsite\Excel\Excel::XLSX
+        );
     }
 
     public function render()

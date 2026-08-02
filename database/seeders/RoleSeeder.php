@@ -15,17 +15,17 @@ class RoleSeeder extends Seeder
     public function run(): void
     {
         // Create roles
-        $superAdminRole = Role::create(['name' => 'Super Admin']);
+        $managementRole = Role::create(['name' => 'Management']);
         $adminRole = Role::create(['name' => 'Admin']);
         $employeeRole = Role::create(['name' => 'Employee']);
 
         // Create users
-        $superAdmin = User::create([
-            'username' => 'superadmin',
-            'email' => 'superadmin@example.com',
+        $management = User::create([
+            'username' => 'management',
+            'email' => 'management@example.com',
             'password' => Hash::make('password'),
         ]);
-        $superAdmin->assignRole('Super Admin');
+        $management->assignRole('Management');
 
         $admin = User::create([
             'username' => 'admin',
@@ -43,7 +43,7 @@ class RoleSeeder extends Seeder
 
         $this->command->info('Roles and users created successfully!');
         $this->command->info('Login credentials:');
-        $this->command->info('Super Admin: superadmin@example.com / password');
+        $this->command->info('Management: management@example.com / password');
         $this->command->info('Admin: admin@example.com / password');
         $this->command->info('Employee: employee@example.com / password');
     }

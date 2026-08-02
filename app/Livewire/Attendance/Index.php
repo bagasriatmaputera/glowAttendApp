@@ -71,6 +71,8 @@ class Index extends Component
     {
         $this->validate();
 
+        $isUpdate = (bool) $this->attendance_id;
+
         Attendance::updateOrCreate(
             ['id' => $this->attendance_id],
             [
@@ -82,6 +84,10 @@ class Index extends Component
                 'notes' => $this->notes,
             ]
         );
+
+        $this->dispatch('toast', type: 'success', message: $isUpdate
+            ? 'Data kehadiran berhasil diperbarui.'
+            : 'Data kehadiran berhasil ditambahkan.');
 
         $this->closeModal();
         $this->dispatch('attendance-saved');
@@ -118,6 +124,8 @@ class Index extends Component
     {
         $attendance = Attendance::findOrFail($this->attendance_id);
         $attendance->delete();
+
+        $this->dispatch('toast', type: 'success', message: 'Data kehadiran berhasil dihapus.');
 
         $this->closeDeleteModal();
         $this->dispatch('attendance-deleted');

@@ -4,10 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Models\Employee;
 use App\Models\Attendance;
 use App\Models\LeaveRequest;
-use App\Models\Schedule;
 use Carbon\Carbon;
 
-Route::view('/', 'welcome');
+Route::redirect('/', '/login');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     
@@ -21,16 +20,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('leave-form', \App\Livewire\LeaveFormPage::class)->name('leave-form-page');
         Route::get('history', \App\Livewire\AttendanceHistory::class)->name('history');
         Route::get('notifications', \App\Livewire\NotificationPage::class)->name('notifications');
+        Route::get('pengumuman', \App\Livewire\Announcement\ListPage::class)->name('announcements.list');
     });
 
-    // Admin & Super Admin Routes
-    Route::middleware(['role:SuperAdmin|Admin'])->group(function () {
+    // Admin & Management Routes
+    Route::middleware(['role:Management|Admin'])->group(function () {
         Route::get('dashboard', function () {
             return view('dashboard', [
                 'totalEmployees' => Employee::count(),
                 'presentToday' => Attendance::whereDate('date', Carbon::today())->where('status', 'present')->count(),
                 'pendingLeave' => LeaveRequest::where('status', 'pending')->count(),
-                'totalSchedules' => Schedule::count(),
             ]);
         })->name('dashboard');
 
@@ -38,7 +37,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::view('attendance', 'attendance')->name('attendance.index');
         Route::view('leave', 'leave-requests')->name('leave-requests.index');
         Route::view('leave-index', 'livewire.leave-request-index')->name('leave-index');
-        Route::view('schedules', 'schedules')->name('schedules.index');
+        Route::view('office-locations', 'office-locations')->name('office-locations.index');
+        Route::view('announcements', 'announcements')->name('announcements.index');
     });
 
 });

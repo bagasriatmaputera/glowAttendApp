@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Create roles
-        $roleSuperAdmin = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'SuperAdmin']);
+        $roleManagement = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Management']);
         $roleAdmin = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Admin']);
         $roleEmployee = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Employee']);
 
@@ -27,7 +27,7 @@ class DatabaseSeeder extends Seeder
                 // 'email_verified_at' => now(),
             ]
         );
-        $owner->assignRole($roleSuperAdmin);
+        $owner->assignRole($roleManagement);
 
         // Create Management
         $management = User::firstOrCreate(

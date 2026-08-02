@@ -11,6 +11,7 @@ class Attendance extends Model
 
     protected $fillable = [
         'employee_id',
+        'office_location_id',
         'date',
         'clock_in',
         'clock_out',
@@ -33,5 +34,10 @@ class Attendance extends Model
     public function employee()
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    public function officeLocation()
+    {
+        return $this->belongsTo(OfficeLocation::class);
     }
 }

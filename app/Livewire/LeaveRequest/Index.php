@@ -5,9 +5,12 @@ namespace App\Livewire\LeaveRequest;
 use App\Models\LeaveRequest;
 use App\Models\Employee;
 use App\Models\User;
+use App\Exports\LeaveRequestExport;
+use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends Component
 {
@@ -28,9 +31,28 @@ class Index extends Component
     public bool $showDeleteModal = false;
     public bool $isHasPermission = true;
 
+    // Export properties
+    public bool $showExportModal = false;
+    public $exportDateFrom;
+    public $exportDateTo;
+    public $exportStatus;
+    public $exportEmployeeId;
+
     public function mount()
     {
-        $this->isHasPermission = auth()->user()->hasRole(['SuperAdmin', 'Admin']);
+        $this->isHasPermission = auth()->user()->hasRole(['Management', 'Admin']);
+        $this->exportDateFrom = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $this->exportDateTo = Carbon::now()->format('Y-m-d');
+    }
+
+    protected function exportRules()
+    {
+        return [
+            'exportDateFrom' => 'required|date',
+            'exportDateTo' => 'required|date|after_or_equal:exportDateFrom',
+            'exportStatus' => 'nullable|in:pending,approved,rejected,cancelled',
+            'exportEmployeeId' => 'nullable|exists:employees,id',
+        ];
     }
 
 
@@ -50,7 +72,7 @@ class Index extends Component
     public function store()
     {
         if (!$this->isHasPermission) {
-            $this->dispatch('alert', [
+            $this->dispatch('toast', [
                 'type' => 'error',
                 'message' => 'You do not have permission to perform this action.'
             ]);
@@ -94,6 +116,10 @@ class Index extends Component
             }
         }
 
+        $this->dispatch('toast', type: 'success', message: $isNew
+            ? 'Permintaan cuti berhasil ditambahkan.'
+            : 'Permintaan cuti berhasil diperbarui.');
+
         $this->closeModal();
         $this->dispatch('leave-request-saved');
     }
@@ -129,7 +155,7 @@ class Index extends Component
     public function delete()
     {
         if (!$this->isHasPermission) {
-            $this->dispatch('alert', [
+            $this->dispatch('toast', [
                 'type' => 'error',
                 'message' => 'You do not have permission to perform this action.'
             ]);
@@ -139,6 +165,8 @@ class Index extends Component
         $leaveRequest = LeaveRequest::findOrFail($this->leave_request_id);
         $leaveRequest->delete();
 
+        $this->dispatch('toast', type: 'success', message: 'Permintaan cuti berhasil dihapus.');
+
         $this->closeDeleteModal();
         $this->dispatch('leave-request-deleted');
     }
@@ -146,7 +174,7 @@ class Index extends Component
     public function approve($id)
     {
         if (!$this->isHasPermission) {
-            $this->dispatch('alert', [
+            $this->dispatch('toast', [
                 'type' => 'error',
                 'message' => 'You do not have permission to perform this action.'
             ]);
@@ -166,13 +194,14 @@ class Index extends Component
             "Pengajuan cuti Anda (" . ucfirst($leaveRequest->leave_type) . ") dari tanggal " . $leaveRequest->start_date->format('d F Y') . " s.d " . $leaveRequest->end_date->format('d F Y') . " telah DISETUJUI."
         );
         
+        $this->dispatch('toast', type: 'success', message: 'Permintaan cuti berhasil disetujui.');
         $this->dispatch('leave-request-approved');
     }
 
     public function reject($id)
     {
         if (!$this->isHasPermission) {
-            $this->dispatch('alert', [
+            $this->dispatch('toast', [
                 'type' => 'error',
                 'message' => 'You do not have permission to perform this action.'
             ]);
@@ -192,6 +221,7 @@ class Index extends Component
             "Pengajuan cuti Anda (" . ucfirst($leaveRequest->leave_type) . ") dari tanggal " . $leaveRequest->start_date->format('d F Y') . " s.d " . $leaveRequest->end_date->format('d F Y') . " telah DITOLAK."
         );
         
+        $this->dispatch('toast', type: 'success', message: 'Permintaan cuti berhasil ditolak.');
         $this->dispatch('leave-request-rejected');
     }
 
@@ -222,6 +252,42 @@ class Index extends Component
         $this->reason = null;
         $this->status = 'pending';
         $this->approved_by = null;
+    }
+
+    // ========== Export ==========
+
+    public function openExportModal()
+    {
+        $this->resetExportForm();
+        $this->showExportModal = true;
+    }
+
+    public function closeExportModal()
+    {
+        $this->showExportModal = false;
+        $this->resetExportForm();
+    }
+
+    public function resetExportForm()
+    {
+        $this->exportDateFrom = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $this->exportDateTo = Carbon::now()->format('Y-m-d');
+        $this->exportStatus = null;
+        $this->exportEmployeeId = null;
+        $this->resetValidation();
+    }
+
+    public function export()
+    {
+        $this->validate($this->exportRules());
+
+        $this->closeExportModal();
+
+        return Excel::download(
+            new LeaveRequestExport($this->exportDateFrom, $this->exportDateTo, $this->exportStatus, $this->exportEmployeeId),
+            'rekap-cuti-' . $this->exportDateFrom . '-sampai-' . $this->exportDateTo . '.xlsx',
+            \Maatwebsite\Excel\Excel::XLSX
+        );
     }
 
     public function render()

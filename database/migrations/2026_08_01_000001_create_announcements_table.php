@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('schedules', function (Blueprint $table) {
+        Schema::create('announcements', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // e.g., Shift Pagi, Shift Sore
-            $table->time('clock_in_time');
-            $table->time('clock_out_time');
-            $table->softDeletes();
+            $table->string('title');
+            $table->text('content');
+            $table->boolean('is_active')->default(true);
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('schedules');
+        Schema::dropIfExists('announcements');
     }
 };

@@ -5,6 +5,8 @@ namespace App\Livewire;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 #[Layout('layouts.mobile_layout')]
 class EmployeeProfilePage extends Component
@@ -12,6 +14,11 @@ class EmployeeProfilePage extends Component
     public $phone;
     public $address;
     public bool $showEditModal = false;
+
+    public $current_password;
+    public $password;
+    public $password_confirmation;
+    public bool $showPasswordModal = false;
 
     protected function rules()
     {
@@ -68,6 +75,52 @@ class EmployeeProfilePage extends Component
         }
 
         $this->showEditModal = false;
+    }
+
+    public function openPasswordModal()
+    {
+        $this->current_password = '';
+        $this->password = '';
+        $this->password_confirmation = '';
+        $this->resetErrorBag();
+        $this->showPasswordModal = true;
+    }
+
+    public function closePasswordModal()
+    {
+        $this->showPasswordModal = false;
+        $this->current_password = '';
+        $this->password = '';
+        $this->password_confirmation = '';
+        $this->resetErrorBag();
+    }
+
+    public function updatePassword()
+    {
+        $this->validate([
+            'current_password' => ['required', 'string', 'current_password'],
+            'password' => [
+                'required', 'string', Password::defaults(), 'confirmed',
+                function ($attribute, $value, $fail) {
+                    if (Hash::check($value, Auth::user()->password)) {
+                        $fail('Kata sandi baru tidak boleh sama dengan kata sandi lama.');
+                    }
+                },
+            ],
+        ], [
+            'current_password.required' => 'Kata sandi lama wajib diisi.',
+            'current_password.current_password' => 'Kata sandi lama tidak sesuai.',
+            'password.required' => 'Kata sandi baru wajib diisi.',
+            'password.confirmed' => 'Konfirmasi kata sandi baru tidak cocok.',
+        ]);
+
+        Auth::user()->update([
+            'password' => Hash::make($this->password),
+        ]);
+
+        $this->dispatch('toast', type: 'success', message: 'Kata sandi berhasil diperbarui.');
+
+        $this->closePasswordModal();
     }
 
     public function logout()

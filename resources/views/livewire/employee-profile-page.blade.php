@@ -96,14 +96,14 @@
                 </div>
             </div>
 
-            <!-- Dept (Placeholder position) -->
+            <!-- Dept -->
             <div class="flex items-center gap-3.5">
                 <div class="p-2 bg-orange-50 text-orange-500 rounded-xl">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                 </div>
                 <div>
                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Departemen / Divisi</p>
-                    <p class="text-sm font-bold text-gray-700 mt-0.5">Teknologi Informasi</p>
+                    <p class="text-sm font-bold text-gray-700 mt-0.5">{{ $employee->position ?? '-' }}</p>
                 </div>
             </div>
 
@@ -135,6 +135,11 @@
             <button wire:click="openEditModal" class="w-full py-3.5 bg-white text-[#6366f1] border border-indigo-100 hover:bg-indigo-50 font-bold rounded-xl shadow-sm text-sm transition-all flex items-center justify-center gap-1.5">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                 Edit Profil Anda
+            </button>
+
+            <button wire:click="openPasswordModal" class="w-full py-3.5 bg-white text-[#6366f1] border border-indigo-100 hover:bg-indigo-50 font-bold rounded-xl shadow-sm text-sm transition-all flex items-center justify-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                Ubah Kata Sandi
             </button>
 
             <button wire:click="logout" class="w-full py-3.5 bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-1.5">
@@ -195,6 +200,60 @@
                         Simpan Profil
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div x-data="{ open: @entangle('showPasswordModal') }" x-cloak>
+        <div x-show="open" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" wire:click="closePasswordModal" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+
+            <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-8 scale-95" x-transition:enter-end="opacity-100 translate-y-0 scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 scale-100" x-transition:leave-end="opacity-0 translate-y-8 scale-95" class="relative bg-white w-full max-w-md rounded-2xl shadow-2xl z-10 overflow-hidden flex flex-col max-h-[75vh]">
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4 text-white flex justify-between items-center">
+                    <div>
+                        <h3 class="text-base font-bold">Ubah Kata Sandi</h3>
+                        <p class="text-[11px] text-indigo-100">Masukkan kata sandi lama terlebih dahulu</p>
+                    </div>
+                    <button wire:click="closePasswordModal" class="p-1 hover:bg-white/10 rounded-lg transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <form wire:submit="updatePassword" class="flex-1 p-5 overflow-y-auto space-y-4">
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Kata Sandi Lama <span class="text-red-500">*</span></label>
+                        <input type="password" wire:model="current_password" placeholder="Masukkan kata sandi lama..." class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#6366f1] focus:border-transparent bg-white text-xs font-semibold text-gray-700">
+                        @error('current_password')
+                            <span class="text-red-500 text-[11px] mt-1 block">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Kata Sandi Baru <span class="text-red-500">*</span></label>
+                        <input type="password" wire:model="password" placeholder="Masukkan kata sandi baru..." class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#6366f1] focus:border-transparent bg-white text-xs font-semibold text-gray-700">
+                        @error('password')
+                            <span class="text-red-500 text-[11px] mt-1 block">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Konfirmasi Kata Sandi Baru <span class="text-red-500">*</span></label>
+                        <input type="password" wire:model="password_confirmation" placeholder="Ulangi kata sandi baru..." class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#6366f1] focus:border-transparent bg-white text-xs font-semibold text-gray-700">
+                        @error('password_confirmation')
+                            <span class="text-red-500 text-[11px] mt-1 block">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <div class="flex gap-3 shrink-0 pt-2">
+                        <button type="button" wire:click="closePasswordModal" class="flex-1 py-2.5 border border-gray-300 text-gray-600 rounded-xl font-bold text-xs hover:bg-gray-50 transition-colors">
+                            Batal
+                        </button>
+                        <button type="submit" class="flex-1 py-2.5 bg-[#6366f1] text-white rounded-xl font-bold text-xs hover:bg-[#5355d1] transition-colors shadow-lg shadow-indigo-500/20">
+                            Simpan Kata Sandi
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

@@ -1,4 +1,4 @@
-<div id="home-attend-wrapper" class="min-h-screen bg-gray-50 flex flex-col font-sans pb-24" x-data="clockApp()">
+<div id="home-attend-wrapper" class="min-h-screen bg-gray-50 flex flex-col font-sans pb-24">
     
     <!-- Header Background -->
     <div class="relative bg-gradient-to-br from-[#d95c37] to-[#2b3058] pt-12 pb-24 px-6 rounded-b-[2rem] shadow-sm">
@@ -26,9 +26,17 @@
                     (position) => {
                         this.gettingLocation = false;
                         if (type === 'in') {
-                            $wire.clockIn(position.coords.latitude, position.coords.longitude);
+                            $wire.clockIn(position.coords.latitude, position.coords.longitude)
+                                .catch((error) => {
+                                    this.gettingLocation = false;
+                                    this.locationError = 'Gagal Clock In, silakan coba lagi.';
+                                });
                         } else {
-                            $wire.clockOut(position.coords.latitude, position.coords.longitude);
+                            $wire.clockOut(position.coords.latitude, position.coords.longitude)
+                                .catch((error) => {
+                                    this.gettingLocation = false;
+                                    this.locationError = 'Gagal Clock Out, silakan coba lagi.';
+                                });
                         }
                     },
                     (error) => {
@@ -104,31 +112,6 @@
                 <span>{{ now()->format('l, d F Y') }}</span>
             </div>
 
-            @if($todaySchedule && $todaySchedule->schedule)
-                <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl px-4 py-3 mb-4 border border-indigo-100/50">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="text-[13px] font-bold text-indigo-700">{{ $todaySchedule->schedule->name }}</span>
-                        </div>
-                        <span class="text-[12px] font-semibold text-indigo-500">
-                            {{ $todaySchedule->schedule->clock_in_time->format('H:i') }} - {{ $todaySchedule->schedule->clock_out_time->format('H:i') }}
-                        </span>
-                    </div>
-                </div>
-            @else
-                <div class="bg-gray-50 rounded-xl px-4 py-3 mb-4 border border-gray-100">
-                    <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-                        </svg>
-                        <span class="text-[13px] font-medium text-gray-500">Tidak ada jadwal shift hari ini</span>
-                    </div>
-                </div>
-            @endif
-            
             <!-- Action Buttons -->
             <div class="flex gap-4">
                 <!-- Clock In -->
@@ -159,24 +142,39 @@
             </div>
         </div>
 
-        <!-- Menu Components -->
-        <livewire:menu.menu-card />
-
         <!-- Announcement Section -->
         <div class="mt-4 flex flex-col gap-3">
             <div class="flex justify-between items-center">
                 <h3 class="text-[16px] font-extrabold text-gray-900">Announcement</h3>
-                <a href="#" class="text-[14px] font-bold text-[#6366f1] hover:underline">View All</a>
+                <a href="{{ route('announcements.list') }}" class="text-[14px] font-bold text-[#6366f1] hover:underline">View All</a>
             </div>
-            
-            <div class="bg-gray-100/50 border border-gray-200/60 rounded-xl p-4 flex justify-between items-center gap-4 cursor-pointer hover:bg-gray-100 transition-colors">
-                <div class="text-[13.5px] font-extrabold text-gray-900 leading-tight">
-                    Announcement: Adjustment to March PPh 21 Due to THR Disbursement
+
+            @if(count($announcements) > 0)
+                <div class="flex flex-col gap-3">
+                    @foreach($announcements as $announcement)
+                        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+                            <div class="flex justify-between items-start gap-3">
+                                <h4 class="text-[13.5px] font-extrabold text-gray-900 leading-tight">
+                                    {{ $announcement->title }}
+                                </h4>
+                                <span class="text-[11px] text-gray-400 font-semibold shrink-0">
+                                    {{ $announcement->created_at->translatedFormat('d M Y') }}
+                                </span>
+                            </div>
+                            <p class="text-[12px] text-gray-500 mt-1 leading-snug line-clamp-2">
+                                {{ $announcement->content }}
+                            </p>
+                        </div>
+                    @endforeach
                 </div>
-                <div class="text-[12px] text-gray-400 font-semibold shrink-0">
-                    26 Mar 2026
+            @else
+                <div class="bg-white border border-gray-100 rounded-2xl p-6 text-center shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
+                    <svg class="w-8 h-8 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path>
+                    </svg>
+                    <p class="text-xs font-bold text-gray-500">Belum ada pengumuman</p>
                 </div>
-            </div>
+            @endif
         </div>
 
         <!-- Inbox & Notifikasi Section -->
@@ -203,10 +201,6 @@
                                 @if($notif->type === 'leave_request')
                                     <span class="p-2 rounded-xl bg-orange-50 text-orange-600 block">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                    </span>
-                                @elseif($notif->type === 'schedule')
-                                    <span class="p-2 rounded-xl bg-purple-50 text-purple-600 block">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                     </span>
                                 @elseif($notif->type === 'attendance')
                                     <span class="p-2 rounded-xl bg-red-50 text-red-600 block">
@@ -250,22 +244,4 @@
     <div class="fixed bottom-0 left-0 right-0 z-50">
         <livewire:navigation.nav-bottom />
     </div>
-
-    <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('clockApp', () => ({
-                time: '',
-                date: '',
-                init() {
-                    this.updateTime();
-                    setInterval(() => this.updateTime(), 1000);
-                },
-                updateTime() {
-                    const now = new Date();
-                    this.time = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-                    this.date = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-                }
-            }))
-        })
-    </script>
 </div>

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained()->onDelete('cascade');
-            $table->string('type'); // leave_request, schedule, attendance, general
+            $table->string('type'); // leave_request, attendance, general
             $table->string('title');
             $table->text('message');
             $table->boolean('is_read')->default(false);

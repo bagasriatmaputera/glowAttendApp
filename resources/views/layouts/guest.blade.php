@@ -18,16 +18,24 @@
         <wireui:scripts />
     </head>
     <body class="font-sans text-gray-900 antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gradient-to-br from-white via-white to-purple-100 selection:bg-purple-500 selection:text-white">
-            <div>
-                <a href="/" wire:navigate>
-                    <x-application-logo class="w-20 h-20 fill-current text-gray-500" />
-                </a>
-            </div>
+        <div class="min-h-screen flex items-center justify-center px-4 py-8 bg-gradient-to-br from-indigo-600 via-purple-600 to-purple-800 selection:bg-purple-500 selection:text-white relative overflow-hidden">
+            <!-- Decorative blur circles -->
+            <div class="absolute -top-24 -left-24 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-indigo-300/20 rounded-full blur-3xl"></div>
+            <div class="absolute top-1/3 right-1/4 w-48 h-48 bg-purple-300/20 rounded-full blur-2xl"></div>
+            <div class="absolute bottom-1/4 left-1/5 w-40 h-40 bg-pink-300/10 rounded-full blur-2xl"></div>
 
-            <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white dark:bg-gray-800 shadow-md overflow-hidden sm:rounded-lg">
-                {{ $slot }}
+            <div class="relative flex flex-col items-center w-full max-w-md">
+                <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3 shadow-lg ring-1 ring-white/20">
+                    <x-application-logo class="w-16 h-16" />
+                </div>
+
+                <div class="w-full mt-6 px-6 py-8 bg-white dark:bg-gray-800 shadow-2xl rounded-2xl overflow-hidden">
+                    {{ $slot }}
+                </div>
             </div>
         </div>
+
+        <x-toast />
     </body>
 </html>

@@ -47,8 +47,11 @@ new class extends Component
                     <x-nav-link :href="route('leave-requests.index')" :active="request()->routeIs('leave-requests.*')" wire:navigate>
                         {{ __('Cuti') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('schedules.index')" :active="request()->routeIs('schedules.*')" wire:navigate>
-                        {{ __('Jadwal') }}
+                    <x-nav-link :href="route('office-locations.index')" :active="request()->routeIs('office-locations.*')" wire:navigate>
+                        {{ __('Lokasi') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('announcements.index')" :active="request()->routeIs('announcements.*')" wire:navigate>
+                        {{ __('Pengumuman') }}
                     </x-nav-link>
                 </div>
             </div>
@@ -115,8 +118,11 @@ new class extends Component
             <x-responsive-nav-link :href="route('leave-requests.index')" :active="request()->routeIs('leave-requests.*')" wire:navigate>
                 {{ __('Cuti') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('schedules.index')" :active="request()->routeIs('schedules.*')" wire:navigate>
-                {{ __('Jadwal') }}
+            <x-responsive-nav-link :href="route('office-locations.index')" :active="request()->routeIs('office-locations.*')" wire:navigate>
+                {{ __('Lokasi') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('announcements.index')" :active="request()->routeIs('announcements.*')" wire:navigate>
+                {{ __('Pengumuman') }}
             </x-responsive-nav-link>
         </div>
 
