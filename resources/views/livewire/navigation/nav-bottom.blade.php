@@ -10,7 +10,7 @@
                     @endphp
 
                     @if ($routeExists)
-                        <a href="{{ route($item['route']) }}" class="flex flex-col items-center gap-1 py-1">
+                        <a href="{{ route($item['route']) }}" class="flex flex-col items-center gap-1 py-1 relative">
 
                             {{-- Icon --}}
                             <div @class([
@@ -26,6 +26,13 @@
                                     {!! App\Support\Icons::get($item['icon'], 'w-5 h-5 ' . ($isActive ? 'text-indigo-500' : 'text-gray-400')) !!}
                                 </div>
                             </div>
+
+                            {{-- Badge --}}
+                            @if (!empty($item['badge']) && $item['badge'] > 0)
+                                <span class="absolute -top-0.5 right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold shadow-md shadow-red-500/40">
+                                    {{ $item['badge'] > 99 ? '99+' : $item['badge'] }}
+                                </span>
+                            @endif
 
                             {{-- Nama --}}
                             <span @class([

@@ -12,15 +12,17 @@
                 <x-text-input wire:model.live.debounce.300ms="search" placeholder="Cari lokasi..." class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/80 backdrop-blur-sm" />
             </div>
         </div>
-        <button wire:click="create"
-            class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transform hover:scale-105">
-            <span class="flex items-center justify-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-                {{ __('Tambah Lokasi') }}
-            </span>
-        </button>
+        @if ($isOwner)
+            <button wire:click="create"
+                class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transform hover:scale-105">
+                <span class="flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    {{ __('Tambah Lokasi') }}
+                </span>
+            </button>
+        @endif
     </div>
 
     <!-- Info banner -->
@@ -51,6 +53,9 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     @forelse($officeLocations as $location)
+                        @php
+                            $isPending = in_array($location->id, $pendingLocationIds ?? []);
+                        @endphp
                         <tr class="hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-purple-50/50 transition-colors duration-150">
                             <td class="px-6 py-4">
                                 <span class="text-sm font-medium text-gray-900">{{ $location->name }}</span>
@@ -88,21 +93,32 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4 text-right">
-                                <div class="flex justify-end space-x-2">
-                                    <button wire:click="edit({{ $location->id }})"
-                                        class="inline-flex items-center px-3 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors duration-150">
-                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                        </svg>
-                                        Ubah
-                                    </button>
-                                    <button wire:click="confirmDelete({{ $location->id }})"
-                                        class="inline-flex items-center px-3 py-2 text-sm font-medium text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors duration-150">
-                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                        </svg>
-                                        Hapus
-                                    </button>
+                                <div class="flex justify-end space-x-2 items-center">
+                                    @if ($isPending)
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-lg shadow-amber-500/25">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            Menunggu Persetujuan
+                                        </span>
+                                    @else
+                                        @if ($isOwner)
+                                            <button wire:click="edit({{ $location->id }})"
+                                                class="inline-flex items-center px-3 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors duration-150">
+                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                                </svg>
+                                                Ubah
+                                            </button>
+                                        @endif
+                                        <button wire:click="confirmDelete({{ $location->id }})"
+                                            class="inline-flex items-center px-3 py-2 text-sm font-medium text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors duration-150">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                            {{ $isOwner ? 'Hapus' : 'Ajukan Hapus' }}
+                                        </button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -411,7 +427,11 @@
                     <div class="text-center mb-8">
                         <h3 class="text-xl font-bold text-gray-900 mb-3">Apakah Anda benar-benar yakin?</h3>
                         <p class="text-gray-600 leading-relaxed">
-                            Tindakan ini tidak dapat dibatalkan. Lokasi kantor akan dihapus secara permanen.
+                            @if ($isOwner)
+                                Tindakan ini tidak dapat dibatalkan. Lokasi kantor akan dihapus secara permanen.
+                            @else
+                                Lokasi kantor tidak akan dihapus langsung. Permintaan penghapusan akan dikirim ke Owner untuk mendapat persetujuan terlebih dahulu.
+                            @endif
                         </p>
                     </div>
 
@@ -427,7 +447,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                           d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                 </svg>
-                                Hapus Lokasi
+                                {{ $isOwner ? 'Hapus Lokasi' : 'Ajukan Penghapusan' }}
                             </span>
                         </button>
                     </div>

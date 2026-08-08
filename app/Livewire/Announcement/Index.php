@@ -3,6 +3,7 @@
 namespace App\Livewire\Announcement;
 
 use App\Models\Announcement;
+use App\Models\PendingChangeRequest;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -10,14 +11,25 @@ class Index extends Component
 {
     use WithPagination;
 
+    public bool $isOwner = false;
+
     public $search = '';
 
+    public function mount()
+    {
+        $this->isOwner = auth()->user()->isOwner();
+    }
+
     public $announcement_id;
+
     public $title;
+
     public $content;
+
     public $is_active = true;
 
     public $showAnnouncementModal = false;
+
     public $showDeleteModal = false;
 
     protected function rules()
@@ -89,8 +101,23 @@ class Index extends Component
     public function delete()
     {
         if ($this->announcement_id) {
-            Announcement::findOrFail($this->announcement_id)->delete();
-            $this->dispatch('toast', type: 'success', message: 'Pengumuman berhasil dihapus.');
+            $announcement = Announcement::findOrFail($this->announcement_id);
+
+            if ($this->isOwner) {
+                $announcement->delete();
+                $this->dispatch('toast', type: 'success', message: 'Pengumuman berhasil dihapus.');
+            } else {
+                PendingChangeRequest::create([
+                    'type' => PendingChangeRequest::TYPE_DELETE_ANNOUNCEMENT,
+                    'payload' => [
+                        'announcement_id' => $announcement->id,
+                        'title' => $announcement->title,
+                    ],
+                    'requested_by' => auth()->id(),
+                    'status' => PendingChangeRequest::STATUS_PENDING,
+                ]);
+                $this->dispatch('toast', type: 'info', message: 'Permintaan penghapusan dikirim ke Owner untuk disetujui.');
+            }
         }
         $this->closeDeleteModal();
         $this->announcement_id = null;
@@ -122,10 +149,16 @@ class Index extends Component
     {
         return view('livewire.announcement.index', [
             'announcements' => Announcement::with('creator')
-                ->where('title', 'like', '%' . $this->search . '%')
-                ->orWhere('content', 'like', '%' . $this->search . '%')
+                ->where('title', 'like', '%'.$this->search.'%')
+                ->orWhere('content', 'like', '%'.$this->search.'%')
                 ->latest()
                 ->paginate(10),
+            'pendingAnnouncementIds' => PendingChangeRequest::pending()
+                ->where('type', PendingChangeRequest::TYPE_DELETE_ANNOUNCEMENT)
+                ->get()
+                ->map(fn ($request) => $request->payload['announcement_id'] ?? null)
+                ->filter()
+                ->all(),
         ])->layout('layouts.app', [
             'header' => 'Pengumuman',
         ]);

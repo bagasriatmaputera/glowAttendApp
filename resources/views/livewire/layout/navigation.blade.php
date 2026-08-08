@@ -53,6 +53,11 @@ new class extends Component
                     <x-nav-link :href="route('announcements.index')" :active="request()->routeIs('announcements.*')" wire:navigate>
                         {{ __('Pengumuman') }}
                     </x-nav-link>
+                    @if (auth()->user()->isOwner())
+                        <x-nav-link :href="route('approvals.index')" :active="request()->routeIs('approvals.*')" wire:navigate>
+                            {{ __('Persetujuan') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -124,6 +129,11 @@ new class extends Component
             <x-responsive-nav-link :href="route('announcements.index')" :active="request()->routeIs('announcements.*')" wire:navigate>
                 {{ __('Pengumuman') }}
             </x-responsive-nav-link>
+            @if (auth()->user()->isOwner())
+                <x-responsive-nav-link :href="route('approvals.index')" :active="request()->routeIs('approvals.*')" wire:navigate>
+                    {{ __('Persetujuan') }}
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->

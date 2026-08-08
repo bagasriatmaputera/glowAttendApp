@@ -57,6 +57,31 @@
             </div>
         </div>
 
+        @if (auth()->user()->isOwner())
+            <div class="bg-white/95 backdrop-blur-sm border border-amber-100/50 rounded-2xl shadow-xl shadow-amber-200/20 p-6 mb-8">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-gradient-to-br from-amber-400 to-orange-600 rounded-xl p-3">
+                            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-5">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500">Permintaan Menunggu Persetujuan</dt>
+                                <dd class="text-lg font-semibold text-gray-900">{{ $pendingApprovals ?? 0 }} permintaan</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    @if (($pendingApprovals ?? 0) > 0)
+                        <a href="{{ route('approvals.index') }}" wire:navigate class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 shadow-lg shadow-indigo-500/25">
+                            Tinjau Sekarang
+                        </a>
+                    @endif
+                </div>
+            </div>
+        @endif
+
         <!-- Welcome Section -->
         <div class="bg-white/95 backdrop-blur-sm border border-indigo-100/50 rounded-2xl shadow-xl shadow-indigo-200/20 overflow-hidden">
             <div class="p-8">

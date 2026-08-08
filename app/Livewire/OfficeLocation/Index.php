@@ -3,6 +3,7 @@
 namespace App\Livewire\OfficeLocation;
 
 use App\Models\OfficeLocation;
+use App\Models\PendingChangeRequest;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -10,19 +11,35 @@ class Index extends Component
 {
     use WithPagination;
 
+    public bool $isOwner = false;
+
     public $search = '';
 
+    public function mount()
+    {
+        $this->isOwner = auth()->user()->isOwner();
+    }
+
     public $office_location_id;
+
     public $name;
+
     public $address;
+
     public $latitude;
+
     public $longitude;
+
     public $radius = 100;
+
     public $clock_in_time;
+
     public $clock_out_time;
+
     public $is_active = true;
 
     public $showOfficeLocationModal = false;
+
     public $showDeleteModal = false;
 
     protected function rules()
@@ -54,12 +71,24 @@ class Index extends Component
 
     public function create()
     {
+        if (! $this->isOwner) {
+            $this->dispatch('toast', type: 'error', message: 'Hanya Owner yang dapat menambahkan lokasi kantor.');
+
+            return;
+        }
+
         $this->resetInputFields();
         $this->showOfficeLocationModal = true;
     }
 
     public function edit($id)
     {
+        if (! $this->isOwner) {
+            $this->dispatch('toast', type: 'error', message: 'Hanya Owner yang dapat mengubah konfigurasi lokasi kantor.');
+
+            return;
+        }
+
         $location = OfficeLocation::findOrFail($id);
 
         $this->office_location_id = $id;
@@ -77,6 +106,12 @@ class Index extends Component
 
     public function store()
     {
+        if (! $this->isOwner) {
+            $this->dispatch('toast', type: 'error', message: 'Hanya Owner yang dapat mengubah konfigurasi lokasi kantor.');
+
+            return;
+        }
+
         $this->validate();
 
         if ($this->is_active) {
@@ -114,10 +149,28 @@ class Index extends Component
 
     public function delete()
     {
-        if ($this->office_location_id) {
-            OfficeLocation::findOrFail($this->office_location_id)->delete();
-            $this->dispatch('toast', type: 'success', message: 'Lokasi kantor berhasil dihapus.');
+        $id = $this->office_location_id;
+
+        if ($id) {
+            $location = OfficeLocation::findOrFail($id);
+
+            if ($this->isOwner) {
+                $location->delete();
+                $this->dispatch('toast', type: 'success', message: 'Lokasi kantor berhasil dihapus.');
+            } else {
+                PendingChangeRequest::create([
+                    'type' => PendingChangeRequest::TYPE_DELETE_OFFICE_LOCATION,
+                    'payload' => [
+                        'office_location_id' => $location->id,
+                        'name' => $location->name,
+                    ],
+                    'requested_by' => auth()->id(),
+                    'status' => PendingChangeRequest::STATUS_PENDING,
+                ]);
+                $this->dispatch('toast', type: 'info', message: 'Permintaan penghapusan dikirim ke Owner untuk disetujui.');
+            }
         }
+
         $this->closeDeleteModal();
         $this->office_location_id = null;
     }
@@ -152,10 +205,16 @@ class Index extends Component
     public function render()
     {
         return view('livewire.office-location.index', [
-            'officeLocations' => OfficeLocation::where('name', 'like', '%' . $this->search . '%')
-                ->orWhere('address', 'like', '%' . $this->search . '%')
+            'officeLocations' => OfficeLocation::where('name', 'like', '%'.$this->search.'%')
+                ->orWhere('address', 'like', '%'.$this->search.'%')
                 ->latest()
                 ->paginate(10),
+            'pendingLocationIds' => PendingChangeRequest::pending()
+                ->where('type', PendingChangeRequest::TYPE_DELETE_OFFICE_LOCATION)
+                ->get()
+                ->map(fn ($request) => $request->payload['office_location_id'] ?? null)
+                ->filter()
+                ->all(),
         ])->layout('layouts.app', [
             'header' => 'Lokasi Kantor',
         ]);

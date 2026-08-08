@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Navigation;
 
+use App\Models\PendingChangeRequest;
 use Livewire\Component;
 
 class NavBottom extends Component
@@ -13,7 +14,7 @@ class NavBottom extends Component
         $roleName = auth()->user()->roles->first()?->name ?? 'Employee';
 
         if (in_array($roleName, ['Management', 'Admin'])) {
-            $this->menu = [
+            $menu = [
                 [
                     'nama' => 'Dashboard',
                     'route' => 'dashboard',
@@ -40,6 +41,18 @@ class NavBottom extends Component
                     'icon' => 'user',
                 ],
             ];
+
+            if ($roleName === 'Management') {
+                $pendingCount = PendingChangeRequest::pending()->count();
+                array_splice($menu, 4, 0, [[
+                    'nama' => 'Persetujuan',
+                    'route' => 'approvals.index',
+                    'icon' => 'document',
+                    'badge' => $pendingCount,
+                ]]);
+            }
+
+            $this->menu = $menu;
         } else {
             $this->menu = [
                 [

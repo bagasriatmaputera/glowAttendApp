@@ -2,15 +2,16 @@
 
 namespace App\Livewire\Employee;
 
-use App\Models\Employee;
-use App\Models\User;
 use App\Exports\EmployeeExport;
+use App\Models\Employee;
+use App\Models\PendingChangeRequest;
+use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
-use Carbon\Carbon;
 
 class Index extends Component
 {
@@ -18,25 +19,46 @@ class Index extends Component
 
     public $search = '';
 
+    public bool $isOwner = false;
+
+    public function mount()
+    {
+        $this->isOwner = auth()->user()->isOwner();
+    }
+
     public $employee_id;
+
     public $user_id;
+
     public $employee_code;
+
     public $email;
+
     public $username;
+
     public $role = 'Employee';
+
     public $full_name;
+
     public $phone;
+
     public $address;
+
     public $position;
+
     public $join_date;
+
     public $is_active = true;
 
     public $showEmployeeModal = false;
+
     public $showDeleteModal = false;
 
     // Export properties
     public bool $showExportModal = false;
+
     public $exportRole;
+
     public $exportStatus = '';
 
     protected function rules()
@@ -65,20 +87,20 @@ class Index extends Component
 
     public function updatedJoinDate($value)
     {
-        if ($value && !$this->employee_id) {
+        if ($value && ! $this->employee_id) {
             $this->generateEmployeeCode();
         }
     }
 
     public function generateEmployeeCode()
     {
-        if (!$this->join_date) {
+        if (! $this->join_date) {
             return;
         }
 
-        $prefix = 'EMP' . Carbon::parse($this->join_date)->format('dmy');
+        $prefix = 'EMP'.Carbon::parse($this->join_date)->format('dmy');
 
-        $lastEmployee = Employee::withTrashed()->where('employee_code', 'like', $prefix . '%')
+        $lastEmployee = Employee::withTrashed()->where('employee_code', 'like', $prefix.'%')
             ->orderBy('employee_code', 'desc')
             ->first();
 
@@ -89,7 +111,7 @@ class Index extends Component
             $increment = '001';
         }
 
-        $this->employee_code = $prefix . $increment;
+        $this->employee_code = $prefix.$increment;
     }
 
     private function mapRole(?string $select): string
@@ -113,6 +135,14 @@ class Index extends Component
     public function edit($id)
     {
         $employee = Employee::findOrFail($id);
+        $targetUser = $employee->user;
+
+        if (! $this->isOwner && $targetUser && ($targetUser->isOwner() || $targetUser->isAdmin())) {
+            $this->dispatch('toast', type: 'error', message: 'Anda tidak memiliki izin untuk mengubah akun ini.');
+
+            return;
+        }
+
         $this->employee_id = $id;
         $this->user_id = $employee->user_id;
         $this->email = $employee->user?->email ?? '';
@@ -131,11 +161,34 @@ class Index extends Component
 
     public function store()
     {
+        if (! $this->isOwner) {
+            $this->role = 'Employee';
+        }
+
         $this->validate();
 
         $isUpdate = (bool) $this->employee_id;
 
-        if ($this->employee_id) {
+        $targetUser = null;
+        if ($isUpdate) {
+            $targetUser = Employee::findOrFail($this->employee_id)->user;
+        }
+
+        // Admin tidak boleh mengubah akun dengan privilege lebih tinggi/setara
+        if (! $this->isOwner && $targetUser && ($targetUser->isOwner() || $targetUser->isAdmin())) {
+            $this->dispatch('toast', type: 'error', message: 'Anda tidak memiliki izin untuk mengubah akun ini.');
+
+            return;
+        }
+
+        // Owner tidak boleh mendemote akun sendiri menjadi non-Owner
+        if ($this->isOwner && $isUpdate && $targetUser && $targetUser->id === auth()->id() && $this->mapRole($this->role) !== 'Management') {
+            $this->dispatch('toast', type: 'error', message: 'Anda tidak dapat mengubah role akun Anda sendiri menjadi non-Owner.');
+
+            return;
+        }
+
+        if ($isUpdate) {
             $user = User::findOrFail($this->user_id);
             $user->update([
                 'email' => $this->email,
@@ -174,6 +227,15 @@ class Index extends Component
 
     public function confirmDelete($id)
     {
+        $employee = Employee::with('user')->findOrFail($id);
+        $targetUser = $employee->user;
+
+        if (! $this->isOwner && $targetUser && ($targetUser->isOwner() || $targetUser->isAdmin())) {
+            $this->dispatch('toast', type: 'error', message: 'Anda tidak memiliki izin untuk menghapus akun ini.');
+
+            return;
+        }
+
         $this->employee_id = $id;
         $this->showDeleteModal = true;
     }
@@ -181,11 +243,55 @@ class Index extends Component
     public function delete()
     {
         if ($this->employee_id) {
-            Employee::findOrFail($this->employee_id)->delete();
-            $this->dispatch('toast', type: 'success', message: 'Karyawan berhasil dihapus.');
+            $employee = Employee::with('user')->findOrFail($this->employee_id);
+            $targetUser = $employee->user;
+
+            if ($this->isOwner) {
+                if ($targetUser && $targetUser->id === auth()->id()) {
+                    $this->dispatch('toast', type: 'error', message: 'Tidak dapat menghapus akun Anda sendiri.');
+                    $this->closeDeleteModal();
+
+                    return;
+                }
+
+                if ($targetUser && $targetUser->isOwner() && User::whereHas('roles', fn ($q) => $q->where('name', 'Management'))->count() <= 1) {
+                    $this->dispatch('toast', type: 'error', message: 'Tidak dapat menghapus Owner terakhir.');
+                    $this->closeDeleteModal();
+
+                    return;
+                }
+
+                $employee->delete();
+                $this->dispatch('toast', type: 'success', message: 'Karyawan berhasil dihapus.');
+            } else {
+                if ($targetUser && ($targetUser->isOwner() || $targetUser->isAdmin())) {
+                    $this->dispatch('toast', type: 'error', message: 'Anda tidak memiliki izin untuk menghapus akun ini.');
+                    $this->closeDeleteModal();
+
+                    return;
+                }
+
+                $this->requestDeleteEmployee($employee, $targetUser);
+                $this->dispatch('toast', type: 'info', message: 'Permintaan penghapusan dikirim ke Owner untuk disetujui.');
+            }
         }
         $this->closeDeleteModal();
         $this->employee_id = null;
+    }
+
+    private function requestDeleteEmployee(Employee $employee, ?User $targetUser): void
+    {
+        PendingChangeRequest::create([
+            'type' => PendingChangeRequest::TYPE_DELETE_EMPLOYEE,
+            'payload' => [
+                'employee_id' => $employee->id,
+                'employee_code' => $employee->employee_code,
+                'full_name' => $employee->full_name,
+                'user_id' => $targetUser?->id,
+            ],
+            'requested_by' => auth()->id(),
+            'status' => PendingChangeRequest::STATUS_PENDING,
+        ]);
     }
 
     public function closeDeleteModal()
@@ -255,19 +361,27 @@ class Index extends Component
 
         return Excel::download(
             new EmployeeExport($this->exportRole, $status),
-            'data-karyawan-' . now()->format('Ymd-His') . '.xlsx',
+            'data-karyawan-'.now()->format('Ymd-His').'.xlsx',
             \Maatwebsite\Excel\Excel::XLSX
         );
     }
 
     public function render()
     {
+        $pendingEmployeeIds = PendingChangeRequest::pending()
+            ->where('type', PendingChangeRequest::TYPE_DELETE_EMPLOYEE)
+            ->get()
+            ->map(fn ($request) => $request->payload['employee_id'] ?? null)
+            ->filter()
+            ->all();
+
         return view('livewire.employee.index', [
             'employees' => Employee::with('user')
-                ->where('full_name', 'like', '%' . $this->search . '%')
-                ->orWhere('employee_code', 'like', '%' . $this->search . '%')
+                ->where('full_name', 'like', '%'.$this->search.'%')
+                ->orWhere('employee_code', 'like', '%'.$this->search.'%')
                 ->latest()
                 ->paginate(10),
+            'pendingEmployeeIds' => $pendingEmployeeIds,
         ])->layout('layouts.app', [
             'header' => 'Employees',
         ]);
