@@ -19,8 +19,6 @@ class Attendance extends Model
         'longitude_in',
         'latitude_out',
         'longitude_out',
-        'photo_in_url',
-        'photo_out_url',
         'status',
         'notes',
     ];
