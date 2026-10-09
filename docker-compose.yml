@@ -1,0 +1,63 @@
+services:
+  web:
+    build:
+      context: .
+      target: web
+    image: glowattend-web:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3002:80"
+    volumes:
+      - app-storage:/var/www/html/storage:ro
+    depends_on:
+      - app
+    networks:
+      - default
+
+  app:
+    build:
+      context: .
+      target: app
+    image: glowattend-app:latest
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - app-storage:/var/www/html/storage
+    networks:
+      - default
+      - shared-db
+
+  # Opsional: aktifkan jika menggunakan queue / scheduler background worker
+  # queue:
+  #   image: glowattend-app:latest
+  #   restart: unless-stopped
+  #   env_file: .env
+  #   command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+  #   volumes:
+  #     - app-storage:/var/www/html/storage
+  #   depends_on:
+  #     - app
+  #   networks:
+  #     - default
+  #     - shared-db
+  #
+  # scheduler:
+  #   image: glowattend-app:latest
+  #   restart: unless-stopped
+  #   env_file: .env
+  #   command: php artisan schedule:work
+  #   volumes:
+  #     - app-storage:/var/www/html/storage
+  #   depends_on:
+  #     - app
+  #   networks:
+  #     - default
+  #     - shared-db
+
+volumes:
+  app-storage:
+
+networks:
+  default:
+  shared-db:
+    external: true
