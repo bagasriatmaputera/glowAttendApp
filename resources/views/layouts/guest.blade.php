@@ -25,7 +25,7 @@
             <div class="absolute top-1/3 right-1/4 w-48 h-48 bg-purple-300/20 rounded-full blur-2xl"></div>
             <div class="absolute bottom-1/4 left-1/5 w-40 h-40 bg-pink-300/10 rounded-full blur-2xl"></div>
 
-            <div class="relative flex flex-col items-center w-full max-w-md">
+            <div class="relative flex flex-col items-center w-full max-w-lg">
                 <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3 shadow-lg ring-1 ring-white/20">
                     <x-application-logo class="w-16 h-16" />
                 </div>
@@ -36,6 +36,7 @@
             </div>
         </div>
 
+        <x-demo-watermark />
         <x-toast />
     </body>
 </html>

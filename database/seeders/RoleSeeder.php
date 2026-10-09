@@ -41,6 +41,18 @@ class RoleSeeder extends Seeder
         ]);
         $employee->assignRole('Employee');
 
+        // Create Employee profile record
+        \App\Models\Employee::create([
+            'user_id' => $employee->id,
+            'employee_code' => 'EMP-001',
+            'full_name' => 'Demo Employee',
+            'phone' => '081234567890',
+            'address' => 'Jakarta, Indonesia',
+            'position' => 'Stylist',
+            'join_date' => now()->subMonths(6)->toDateString(),
+            'is_active' => true,
+        ]);
+
         $this->command->info('Roles and users created successfully!');
         $this->command->info('Login credentials:');
         $this->command->info('Management: management@example.com / password');

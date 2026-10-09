@@ -50,5 +50,19 @@ class DatabaseSeeder extends Seeder
             ]
         );
         $employee->assignRole($roleEmployee);
+
+        // Create Employee profile record
+        \App\Models\Employee::firstOrCreate(
+            ['user_id' => $employee->id],
+            [
+                'employee_code' => 'EMP-001',
+                'full_name' => 'Demo Employee',
+                'phone' => '081234567890',
+                'address' => 'Jakarta, Indonesia',
+                'position' => 'Stylist',
+                'join_date' => now()->subMonths(6)->toDateString(),
+                'is_active' => true,
+            ]
+        );
     }
 }

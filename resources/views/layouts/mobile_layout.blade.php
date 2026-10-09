@@ -15,6 +15,7 @@
 
     @livewireScripts
 
+    <x-demo-watermark />
     <x-toast />
 </body>
 </html>

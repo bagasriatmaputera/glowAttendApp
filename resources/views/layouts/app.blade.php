@@ -57,6 +57,7 @@
             </main>
         </div>
 
+        <x-demo-watermark />
         <x-toast />
     </body>
 </html>

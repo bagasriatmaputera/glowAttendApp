@@ -30,6 +30,7 @@ new class extends Component
                             </svg>
                         </div>
                         <span class="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Glowttend</span>
+                        <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-md shadow-sm">DEMO</span>
                     </a>
                 </div>
 
